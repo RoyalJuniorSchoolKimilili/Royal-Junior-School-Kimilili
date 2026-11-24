@@ -7,7 +7,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Profile = { id: string; full_name: string; role: "admin" | "director" | "headteacher" | "bursar" | "teacher" | "parent" | "student"; approval_status: "pending" | "approved" | "rejected" };
 type Row = Record<string, any>;
-type ModuleKey = "overview" | "learners" | "attendance" | "assessments" | "results" | "classes" | "fees" | "approvals" | "notices" | "documents" | "news" | "website";
+type ModuleKey = "overview" | "learners" | "attendance" | "assessments" | "results" | "classes" | "fees" | "approvals" | "notices" | "documents" | "news" | "website" | "my-records";
 const info: Record<ModuleKey,{title:string;description:string}> = {
  overview:{title:"Dashboard overview",description:"School management workspace."},
  learners:{title:"Learners & admissions",description:"Register learners and prepare admission letters."},
@@ -20,7 +20,7 @@ const info: Record<ModuleKey,{title:string;description:string}> = {
  notices:{title:"School notices",description:"Publish announcements to the school community."},
  documents:{title:"Admission letters & receipts",description:"Prepare, preview and print official school documents."},
  news:{title:"School news & blog",description:"Write school stories and submit them for publication."},
- website:{title:"Website content",description:"Manage the public school photo gallery and events calendar."}
+ website:{title:"Website content",description:"Manage the public school photo gallery and events calendar."},\n my-records:{title:"My learner records",description:"View your own attendance, assessment results and approved fee payments."}
 };
 const roleModules:Record<Profile["role"],ModuleKey[]> = {
  admin:["overview","learners","attendance","assessments","results","classes","fees","approvals","notices","documents","news","website"],
@@ -29,7 +29,7 @@ const roleModules:Record<Profile["role"],ModuleKey[]> = {
  bursar:["overview","fees"],
  teacher:["overview","learners","attendance","assessments","results","classes","notices","news"],
  parent:["overview","learners","attendance","assessments","results","fees","notices"],
- student:["overview"]
+ student:["overview","my-records"]
 };
 const cbeGradeAreas:Record<string,string[]> = {
  "PP1":["Language Activities","Mathematics Activities","Creative Arts","Environmental Activities","Christian Religious Education","Islamic Religious Education","Hindu Religious Education"],
@@ -102,6 +102,24 @@ export default function ProtectedDashboardPage(){
  },[supabase,profile?.role]);
  const loadRows=useCallback(async(key:ModuleKey)=>{
   setLoading(true);setNotice("");
+  if(key==="my-records"){
+   if(profile?.role!=="student"){setRows([]);setNotice("This section is reserved for student accounts.");setLoading(false);return;}
+   const link=await supabase.from("student_learner_links").select("learner_id").eq("user_id",profile.id).maybeSingle();
+   if(link.error||!link.data){setRows([]);setNotice(link.error?.message??"Your account has not yet been linked to a learner record. Please contact the school administrator.");setLoading(false);return;}
+   const learnerId=link.data.learner_id;
+   const [learnerResult,attendanceResult,marksResult,feesResult]=await Promise.all([
+    supabase.from("learners").select("full_name,admission_number").eq("id",learnerId).maybeSingle(),
+    supabase.from("attendance").select("attendance_date,status,note").eq("learner_id",learnerId).order("attendance_date",{ascending:false}).limit(100),
+    supabase.from("marks").select("score,maximum_score,grade,feedback,competency_progress,created_at").eq("learner_id",learnerId).order("created_at",{ascending:false}).limit(100),
+    supabase.from("fee_payments").select("amount_kes,payment_method,receipt_number,status,paid_at").eq("learner_id",learnerId).eq("status","approved").order("paid_at",{ascending:false}).limit(100)
+   ]);
+   const combined:Row[]=[
+    ...(attendanceResult.data??[]).map(x=>({record:"Attendance",date:x.attendance_date,details:x.note||"Daily attendance",status:x.status})),
+    ...(marksResult.data??[]).map(x=>({record:"Assessment",date:x.created_at,details:[x.grade,x.score!==null?String(x.score)+"/"+String(x.maximum_score??"—"):"",x.feedback,x.competency_progress].filter(Boolean).join(" · "),status:"Recorded"})),
+    ...(feesResult.data??[]).map(x=>({record:"Fee payment",date:x.paid_at,details:"KES "+x.amount_kes+" · "+x.payment_method+" · "+(x.receipt_number||"No receipt number"),status:x.status}))
+   ].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime());
+   setRows(combined);setNotice(learnerResult.data?learnerResult.data.full_name+" · Admission "+learnerResult.data.admission_number+(combined.length?"":" · No attendance, assessment or approved payment records are available yet."):learnerResult.error?.message??"Learner record is unavailable.");setLoading(false);return;
+  }
   const table:Record<string,string>={learners:"learners",attendance:"attendance",assessments:"assessments",results:"marks",classes:"classes",fees:"fee_payments",approvals:"profiles",notices:"notices",news:"school_posts",website:"school_events"};
   if(!table[key]){setRows([]);setLoading(false);return;}
   if(key==="website"){
@@ -198,6 +216,7 @@ export default function ProtectedDashboardPage(){
   <nav className="module-nav" aria-label="School portal sections">{modules.map(k=><button key={k} type="button" className={active===k?"module-tab active":"module-tab"} onClick={()=>{setActive(k);setSuccess("");setError("")}}>{info[k].title}</button>)}</nav>
   {["admin","teacher","director","headteacher"].includes(profile.role)&&<p className="module-empty"><a href="/Royal-Junior-School-Kimilili/portal/learners-2026/">Open the protected 2026 learner directory →</a></p>}
   {success&&<p className="portal-success" role="status">{success}</p>}{error&&<p className="portal-error" role="alert">{error}</p>}
+  {active==="my-records"&&<section className="module-panel">{heading}<p className="module-empty">{notice}</p>{loading?<p>Loading your records…</p>:rows.length===0?<p>No records to display.</p>:<div className="table-scroll"><table className="school-data-table"><thead><tr><th>Record</th><th>Date</th><th>Details</th><th>Status</th></tr></thead><tbody>{rows.map((r,i)=><tr key={i}><td>{r.record}</td><td>{r.date?new Date(r.date).toLocaleDateString("en-KE"):"—"}</td><td>{r.details||"—"}</td><td>{r.status||"—"}</td></tr>)}</tbody></table></div>}</section>}
   {active==="overview"&&<div className="module-tiles">{modules.filter(k=>k!=="overview").map(k=><button key={k} className="module-tile" onClick={()=>setActive(k)}><strong>{info[k].title}</strong><span>{info[k].description}</span><em>Open section →</em></button>)}</div>}
   {active==="learners"&&<section className="module-panel">{heading}{(profile.role==="admin"||profile.role==="headteacher")&&<form className="portal-form" onSubmit={e=>submit(e,"learners",{admission_number:f.admission_number,full_name:f.full_name,class_id:f.class_id||null,date_of_birth:f.dob||null,gender:f.gender||null,study_mode:f.study_mode,enrollment_status:"active",guardian_name:f.guardian_name||null,guardian_phone:f.guardian_phone||null})}><h4>+ Register learner</h4>{field("admission_number","Admission number")}{field("full_name","Learner full name")}{field("dob","Date of birth","date",false)}<Field label="Gender"><SelectInput value={f.gender??""} onChange={(e:any)=>set("gender",e.target.value)}><option value="female">Female</option><option value="male">Male</option><option value="other">Other</option></SelectInput></Field><Field label="Class">{classSelect}</Field><Field label="Study mode"><SelectInput value={f.study_mode} onChange={(e:any)=>set("study_mode",e.target.value)}><option value="day">Day</option><option value="boarding">Boarding</option></SelectInput></Field>{field("guardian_name","Parent / guardian name", "text",false)}{field("guardian_phone","Parent / guardian phone","tel",false)}<button className="auth-button" disabled={busy}>Save learner</button></form>}{tableView(["admission_number","full_name","class_id","study_mode","enrollment_status"])}</section>}
   {active==="attendance"&&<section className="module-panel">{heading}<form className="portal-form" onSubmit={e=>submit(e,"attendance",{learner_id:f.learner_id,class_id:f.class_id,attendance_date:f.date,status:f.status,note:f.note||null,recorded_by:profile.id})}><h4>+ Record daily attendance</h4><Field label="Class">{classSelect}</Field><Field label="Learner">{learnerSelect}</Field>{field("date","Attendance date","date")}<Field label="Status"><SelectInput value={f.status} onChange={(e:any)=>set("status",e.target.value)}><option value="present">Present</option><option value="absent">Absent</option><option value="late">Late</option><option value="excused">Excused</option></SelectInput></Field>{field("note","Note (optional)","text",false)}<button className="auth-button" disabled={busy}>Save attendance</button></form>{tableView(["attendance_date","learner_id","class_id","status","note"])}</section>}
