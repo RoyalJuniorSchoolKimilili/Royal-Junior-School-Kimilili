@@ -98,14 +98,14 @@ export default function ProtectedDashboardPage(){
   const a=profile?.role==="bursar"||profile?.role==="student"
    ? {data:[] as Row[]}
    : await supabase.from("assessments").select("id,title,class_id").order("created_at",{ascending:false}).limit(300);
-  const links=profile?.role==="admin"?await supabase.from("student_learner_links").select("user_id,learner_id,linked_at"): {data:[] as Row[]};
+  const links=profile?.role==="admin"?await (supabase as any).from("student_learner_links").select("user_id,learner_id,linked_at"): {data:[] as Row[]};
   setAssessmentOptions(a.data??[]);setLearners(l.data??[]);setClasses(c.data??[]);setSubjects(s.data??[]);setTerms(t.data??[]);setProfiles(p.data??[]);setStudentLinks(links.data??[]);setLinkSelections(Object.fromEntries((links.data??[]).map((x:Row)=>[x.user_id,x.learner_id])));
  },[supabase,profile?.role]);
  const loadRows=useCallback(async(key:ModuleKey)=>{
   setLoading(true);setNotice("");
   if(key==="my-records"){
    if(profile?.role!=="student"){setRows([]);setNotice("This section is reserved for student accounts.");setLoading(false);return;}
-   const link=await supabase.from("student_learner_links").select("learner_id").eq("user_id",profile.id).maybeSingle();
+   const link=await (supabase as any).from("student_learner_links").select("learner_id").eq("user_id",profile.id).maybeSingle();
    if(link.error||!link.data){setRows([]);setNotice(link.error?.message??"Your account has not yet been linked to a learner record. Please contact the school administrator.");setLoading(false);return;}
    const learnerId=link.data.learner_id;
    const [learnerResult,attendanceResult,marksResult,feesResult]=await Promise.all([
@@ -185,13 +185,13 @@ export default function ProtectedDashboardPage(){
   const learnerId=linkSelections[userId];
   if(!learnerId){setError("Select a learner before saving the link.");return;}
   setError("");setSuccess("");
-  const result=await supabase.from("student_learner_links").upsert({user_id:userId,learner_id:learnerId,linked_by:profile?.id,linked_at:new Date().toISOString()},{onConflict:"user_id"});
+  const result=await (supabase as any).from("student_learner_links").upsert({user_id:userId,learner_id:learnerId,linked_by:profile?.id,linked_at:new Date().toISOString()},{onConflict:"user_id"});
   if(result.error){setError(result.error.message);return;}
   setSuccess("Student account linked to the selected learner.");
   await loadLookups();
  };
  const clearStudentLink=async(userId:string)=>{
-  const result=await supabase.from("student_learner_links").delete().eq("user_id",userId);
+  const result=await (supabase as any).from("student_learner_links").delete().eq("user_id",userId);
   if(result.error){setError(result.error.message);return;}
   setSuccess("Student account link removed.");await loadLookups();
  };
