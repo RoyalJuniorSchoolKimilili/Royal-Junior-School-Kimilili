@@ -1,4 +1,5 @@
 name: Deploy Next.js static export to GitHub Pages
+# New workflow runs avoid duplicate github-pages artifacts from repeated retries.
 
 on:
   push:
