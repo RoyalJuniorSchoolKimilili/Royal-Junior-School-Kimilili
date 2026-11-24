@@ -14,7 +14,7 @@ export default function HomePage() {
       <iframe
         title="The Royal Junior School Kimilili website"
         src={schoolSite}
-        style={{ display: "block", width: "100%", height: "calc(100vh - 48px)", minHeight: "calc(100vh - 48px)", border: 0 }}
+        style={{ display: "block", width: "100%", height: "calc(100vh - 136px)", minHeight: "calc(100vh - 136px)", border: 0 }}
         allow="clipboard-read; clipboard-write"
       />
     </main>
