@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -11,6 +12,7 @@ type Profile = {
 };
 
 export default function PortalPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -18,7 +20,7 @@ export default function PortalPage() {
   const [signedInEmail, setSignedInEmail] = useState("");
   const [profile, setProfile] = useState<Profile | null>(null);
 
-  async function loadProfile(session: Session) {
+  async function loadProfile(session: Session): Promise<Profile | null> {
     setSignedInEmail(session.user.email ?? "");
     const supabase = createSupabaseBrowserClient();
     const { data, error } = await supabase
@@ -29,7 +31,7 @@ export default function PortalPage() {
 
     if (error) {
       setMessage("Your login is active, but the school profile could not be loaded. Please contact the school administrator.");
-      return;
+      return null;
     }
 
     setSignedInEmail(session.user.email ?? "");
@@ -39,8 +41,9 @@ export default function PortalPage() {
     } else if (data.approval_status === "rejected") {
       setMessage("This account has not been approved for the school portal. Please contact the school office.");
     } else {
-      setMessage("Your account is approved. The school dashboard modules are being connected; no learner records are displayed on this sign-in screen.");
+      setMessage("Your account is approved. Open your protected school dashboard to continue.");
     }
+    return data as Profile;
   }
 
   useEffect(() => {
@@ -65,7 +68,8 @@ export default function PortalPage() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       if (!data.session) throw new Error("No active session was returned. Please try again.");
-      await loadProfile(data.session);
+      const currentProfile = await loadProfile(data.session);
+      if (currentProfile?.approval_status === "approved") router.push("/portal/dashboard/");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to sign in. Please try again.");
     } finally {
@@ -97,6 +101,7 @@ export default function PortalPage() {
             <p className="auth-status">Signed in as <strong>{profile?.full_name || signedInEmail}</strong>.</p>
             {profile && <p className="auth-status">Role: <strong>{profile.role}</strong> · Account: <strong>{profile.approval_status}</strong></p>}
             <p className="auth-message" role="status">{message}</p>
+            {profile?.approval_status === "approved" && <button className="auth-button" onClick={() => router.push("/portal/dashboard/")}>Open dashboard</button>}
             <button className="auth-button" onClick={signOut}>Sign out</button>
           </>
         ) : (
