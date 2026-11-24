@@ -268,14 +268,35 @@ create policy learner_documents_admin_manage on public.learner_documents for all
 using ((select private.is_admin())) with check ((select private.is_admin()));
 
 create policy notices_read_audience on public.notices for select to authenticated
-using ((select private.is_admin()) or ((select private.is_approved_user())
-  and published = true and (publish_at is null or publish_at <= now()) and (expires_at is null or expires_at > now())
-  and (audience = 'all'
-    or (audience = 'parents' and exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'parent'))
-    or (audience = 'teachers' and exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'teacher'))
-    or (audience = 'class' and ((select private.teaches_class(class_id)) or exists (
-      select 1 from public.learners l join public.parent_learners pl on pl.learner_id = l.id
-      where l.class_id = notices.class_id and pl.parent_id = (select auth.uid()))))));
+using (
+  (select private.is_admin())
+  or (
+    (select private.is_approved_user())
+    and published = true
+    and (publish_at is null or publish_at <= now())
+    and (expires_at is null or expires_at > now())
+    and (
+      audience = 'all'
+      or (audience = 'parents' and exists (
+        select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'parent'
+      ))
+      or (audience = 'teachers' and exists (
+        select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'teacher'
+      ))
+      or (audience = 'class' and (
+        (select private.teaches_class(class_id))
+        or exists (
+          select 1 from public.learners l
+          join public.parent_learners pl on pl.learner_id = l.id
+          join public.profiles p on p.id = pl.parent_id
+          where l.class_id = notices.class_id
+            and pl.parent_id = (select auth.uid())
+            and p.role = 'parent' and p.approval_status = 'approved'
+        )
+      ))
+    )
+  )
+);
 create policy notices_admin_manage on public.notices for all to authenticated using ((select private.is_admin())) with check ((select private.is_admin()));
 
 create policy audit_logs_admin_read on public.audit_logs for select to authenticated using ((select private.is_admin()));
