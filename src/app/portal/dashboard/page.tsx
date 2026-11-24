@@ -141,8 +141,13 @@ export default function ProtectedDashboardPage(){
     <p className="cbe-source-link">Curriculum reference: <a href={(cbeKicdSources[f.grade_level??"Grade 1"]??cbeKicdSources["Grade 1"]).url} target="_blank" rel="noreferrer">{(cbeKicdSources[f.grade_level??"Grade 1"]??cbeKicdSources["Grade 1"]).label} ↗</a></p>
     <Field label="Class">{classSelect}</Field><Field label="Learning area">{subjectSelect}</Field><Field label="Academic term">{termSelect}</Field>
     {field("title","Lesson / assessment activity title")}{field("date","Date","date",false)}
-    <Field label="Assessment approach"><SelectInput value={f.assessment_approach??"Assessment for learning"} onChange={(e:any)=>set("assessment_approach",e.target.value)}><option>Assessment for learning</option><option>Assessment as learning</option><option>Assessment of learning</option></SelectInput></Field>\n    <Field label="Assessment purpose"><SelectInput value={f.assessment_type??"Formative"} onChange={(e:any)=>set("assessment_type",e.target.value)}><option>Diagnostic</option><option>Formative</option><option>Summative</option><option>Performance task</option><option>Project</option><option>Portfolio review</option><option>Practical activity</option></SelectInput></Field>
+    <Field label="Assessment approach"><SelectInput value={f.assessment_approach??"Assessment for learning"} onChange={(e:any)=>set("assessment_approach",e.target.value)}><option>Assessment for learning</option><option>Assessment as learning</option><option>Assessment of learning</option></SelectInput></Field>
+    <Field label="Assessment purpose"><SelectInput value={f.assessment_type??"Formative"} onChange={(e:any)=>set("assessment_type",e.target.value)}><option>Diagnostic</option><option>Formative</option><option>Summative</option><option>Performance task</option><option>Project</option><option>Portfolio review</option><option>Practical activity</option></SelectInput></Field>
     <h4>2. Curriculum design content</h4>
+    {cbeMulti("national_goal","Relevant National Goal(s) of Education",cbeNationalGoals)}
+    {longField("essence_statement","Curriculum design essence statement (copy from KICD)")}
+    {longField("general_learning_outcomes","General learning outcomes (copy from KICD)")}
+
     {field("strand","Strand (copy from KICD design)", "text",false)}
     {field("sub_strand","Sub-strand (copy from KICD design)","text",false)}
     {longField("specific_learning_outcomes","Specific learning outcomes (exact outcome(s) from the KICD design)")}
