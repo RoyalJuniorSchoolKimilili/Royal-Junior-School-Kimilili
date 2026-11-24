@@ -19,6 +19,7 @@ export default function PortalPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
 
   async function loadProfile(session: Session) {
+    setSignedInEmail(session.user.email ?? "");
     const supabase = createSupabaseBrowserClient();
     const { data, error } = await supabase
       .from("profiles")
@@ -38,7 +39,7 @@ export default function PortalPage() {
     } else if (data.approval_status === "rejected") {
       setMessage("This account has not been approved for the school portal. Please contact the school office.");
     } else {
-      setMessage("Your account is approved. Portal access is protected by your school role and the database access policies.");
+      setMessage("Your account is approved. The school dashboard modules are being connected; no learner records are displayed on this sign-in screen.");
     }
   }
 
@@ -63,6 +64,7 @@ export default function PortalPage() {
       const supabase = createSupabaseBrowserClient();
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      if (!data.session) throw new Error("No active session was returned. Please try again.");
       await loadProfile(data.session);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to sign in. Please try again.");
