@@ -7,7 +7,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Profile = { id: string; full_name: string; role: "admin" | "teacher" | "parent"; approval_status: "pending" | "approved" | "rejected" };
 type Row = Record<string, any>;
-type ModuleKey = "overview" | "learners" | "attendance" | "assessments" | "results" | "classes" | "fees" | "approvals" | "notices" | "documents" | "news";
+type ModuleKey = "overview" | "learners" | "attendance" | "assessments" | "results" | "classes" | "fees" | "approvals" | "notices" | "documents" | "news" | "website";
 const info: Record<ModuleKey,{title:string;description:string}> = {
  overview:{title:"Dashboard overview",description:"School management workspace."},
  learners:{title:"Learners & admissions",description:"Register learners and prepare admission letters."},
@@ -19,10 +19,11 @@ const info: Record<ModuleKey,{title:string;description:string}> = {
  approvals:{title:"Staff & parent approvals",description:"Approve or reject portal accounts and assign school roles."},
  notices:{title:"School notices",description:"Publish announcements to the school community."},
  documents:{title:"Admission letters & receipts",description:"Prepare, preview and print official school documents."},
- news:{title:"School news & blog",description:"Write school stories and submit them for publication."}
+ news:{title:"School news & blog",description:"Write school stories and submit them for publication."},
+ website:{title:"Website content",description:"Manage the public school photo gallery and events calendar."}
 };
 const roleModules:Record<Profile["role"],ModuleKey[]> = {
- admin:["overview","learners","attendance","assessments","results","classes","fees","approvals","notices","documents","news"],
+ admin:["overview","learners","attendance","assessments","results","classes","fees","approvals","notices","documents","news","website"],
  teacher:["overview","learners","attendance","assessments","results","classes","notices","news"],
  parent:["overview","learners","attendance","assessments","results","fees","notices"]
 };
@@ -86,7 +87,7 @@ export default function ProtectedDashboardPage(){
  },[supabase]);
  const loadRows=useCallback(async(key:ModuleKey)=>{
   setLoading(true);setNotice("");
-  const table:Record<string,string>={learners:"learners",attendance:"attendance",assessments:"assessments",results:"marks",classes:"classes",fees:"fee_payments",approvals:"profiles",notices:"notices",news:"school_posts"};
+  const table:Record<string,string>={learners:"learners",attendance:"attendance",assessments:"assessments",results:"marks",classes:"classes",fees:"fee_payments",approvals:"profiles",notices:"notices",news:"school_posts",website:"school_events"};
   if(!table[key]){setRows([]);setLoading(false);return;}
   const result=await (supabase.from(table[key] as any) as any).select("*").order("created_at",{ascending:false}).limit(100);
   setRows(result.data??[]);setNotice(result.error?.message??(!result.data?.length?"No records yet. Use the form below to add the first record.":""));setLoading(false);
@@ -183,6 +184,32 @@ export default function ProtectedDashboardPage(){
   {active==="classes"&&<section className="module-panel">{heading}{profile.role==="admin"&&<><form className="portal-form" onSubmit={e=>submit(e,"classes",{name:f.name,level_order:Number(f.level_order||0),active:true})}><h4>+ Add class</h4>{field("name","Class name")}{field("level_order","Display order","number")}<button className="auth-button" disabled={busy}>Save class</button></form><form className="portal-form" onSubmit={e=>submit(e,"subjects",{name:f.subject_name,active:true})}><h4>+ Add learning area</h4>{field("subject_name","Learning area name")}<button className="auth-button" disabled={busy}>Save learning area</button></form><form className="portal-form" onSubmit={e=>submit(e,"academic_terms",{name:f.term_name,academic_year:Number(f.year),term_number:Number(f.term_number),starts_on:f.starts_on||null,ends_on:f.ends_on||null,active:false})}><h4>+ Add academic term</h4>{field("term_name","Term name")}{field("year","Academic year","number")}<Field label="Term number"><SelectInput value={f.term_number} onChange={(e:any)=>set("term_number",e.target.value)}><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></SelectInput></Field>{field("starts_on","Start date","date",false)}{field("ends_on","End date","date",false)}<button className="auth-button" disabled={busy}>Save term</button></form></>}{tableView(["name","level_order","active"])}</section>}
   {active==="fees"&&<section className="module-panel">{heading}{profile.role==="admin"&&<form className="portal-form" onSubmit={e=>submit(e,"fee_payments",{learner_id:f.learner_id,amount_kes:Number(f.amount),payment_method:f.method,payment_reference:f.reference||null,receipt_number:f.receipt_number||("RJS-"+Date.now()),paid_at:f.date?new Date(f.date+"T12:00:00").toISOString():new Date().toISOString(),status:"approved",recorded_by:profile.id,approved_by:profile.id,approved_at:new Date().toISOString(),notes:f.notes||null},data=>setReceipt(data))}><h4>+ Record confirmed fee payment & issue receipt</h4><Field label="Learner">{learnerSelect}</Field>{field("amount","Amount received (KES)","number") }<Field label="Payment method"><SelectInput value={f.method} onChange={(e:any)=>set("method",e.target.value)}><option value="mpesa">M-Pesa</option><option value="cash">Cash</option><option value="bank">Bank</option><option value="other">Other</option></SelectInput></Field>{field("reference","M-Pesa / bank reference","text",false)}{field("receipt_number","Receipt number (leave blank for auto number)","text",false)}{field("date","Payment date","date")}<button className="auth-button" disabled={busy}>Save payment & create receipt</button></form>}{receipt&&<div className="document-preview"><ReceiptDocument row={receipt} learner={learners.find(x=>x.id===receipt.learner_id)} onPrint={print}/></div>}{tableView(["learner_id","amount_kes","payment_method","payment_reference","receipt_number","status","paid_at"])}</section>}
   {active==="approvals"&&<section className="module-panel">{heading}{profile.role==="admin"?<div className="approval-list">{profiles.map(p=><div className="approval-row" key={p.id}><div><strong>{p.full_name||"Unnamed account"}</strong><small>{p.phone||"No phone"} · {p.role} · {p.approval_status}</small></div><div className="approval-actions"><select defaultValue={p.role} id={"role-"+p.id}><option value="admin">Admin</option><option value="teacher">Teacher</option><option value="parent">Parent</option></select><select defaultValue={p.approval_status} id={"status-"+p.id}><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select><button type="button" onClick={()=>changeApproval(p.id,(document.getElementById("role-"+p.id) as HTMLSelectElement).value,(document.getElementById("status-"+p.id) as HTMLSelectElement).value)}>Save</button></div></div>)}</div>:<p>Only administrators can approve accounts.</p>}</section>}
+  {active==="website"&&<section className="module-panel">{heading}
+   <p className="module-empty">Manage school events and photographs shown to parents. Only published items appear publicly. Use a direct HTTPS image link for each photograph.</p>
+   <div className="module-tiles">
+    <a className="module-tile" href="/Royal-Junior-School-Kimilili/events/" target="_blank" rel="noreferrer"><strong>Preview events calendar</strong><span>See upcoming published school events.</span></a>
+    <a className="module-tile" href="/Royal-Junior-School-Kimilili/gallery/" target="_blank" rel="noreferrer"><strong>Preview photo gallery</strong><span>See published school photographs.</span></a>
+   </div>
+   <h4>+ Add school event</h4>
+   <form className="portal-form" onSubmit={e=>submit(e,"school_events",{title:f.event_title,description:f.event_description||"",location:f.event_location||null,starts_at:new Date(f.event_start).toISOString(),ends_at:f.event_end?new Date(f.event_end).toISOString():null,status:f.event_status||"draft",created_by:profile.id})}>
+    {field("event_title","Event title")}{longField("event_description","Event details")}
+    {field("event_location","Venue / location","text",false)}{field("event_start","Start date and time","datetime-local")}
+    {field("event_end","End date and time (optional)","datetime-local",false)}
+    <Field label="Visibility"><SelectInput value={f.event_status??"draft"} onChange={(e:any)=>set("event_status",e.target.value)}><option value="draft">Save as draft</option><option value="published">Publish to website</option></SelectInput></Field>
+    <button className="auth-button" disabled={busy}>Save event</button>
+   </form>
+   <h4>+ Add a school photograph</h4>
+   <form className="portal-form" onSubmit={e=>submit(e,"school_gallery",{title:f.gallery_title,description:f.gallery_description||"",image_url:f.gallery_image,category:f.gallery_category||"School life",display_order:Number(f.gallery_order||0),status:f.gallery_status||"draft",created_by:profile.id})}>
+    {field("gallery_title","Photo title")}{field("gallery_image","Image URL (HTTPS)","url")}
+    {longField("gallery_description","Photo description")}
+    {field("gallery_category","Category (e.g. Sports, Class activities)","text",false)}
+    {field("gallery_order","Display order","number",false)}
+    <Field label="Visibility"><SelectInput value={f.gallery_status??"draft"} onChange={(e:any)=>set("gallery_status",e.target.value)}><option value="draft">Save as draft</option><option value="published">Publish to website</option></SelectInput></Field>
+    <button className="auth-button" disabled={busy}>Save photograph</button>
+   </form>
+   <h4>Existing events and photographs</h4>
+   {loading?<p>Loading website content…</p>:rows.length===0?<p className="module-empty">No events yet. Add the first one above.</p>:<div className="approval-list">{rows.map(item=><article className="approval-row" key={item.id}><div><strong>{item.title}</strong><small>{item.status} · {item.starts_at?new Date(item.starts_at).toLocaleString("en-KE"):item.category||"Photo"}</small><p>{item.description}</p></div><button type="button" onClick={async()=>{const table=item.starts_at?"school_events":"school_gallery";const r=await supabase.from(table as any).update({status:item.status==="published"?"draft":"published",updated_at:new Date().toISOString()}).eq("id",item.id);if(r.error)setError(r.error.message);else{setSuccess("Website item visibility updated.");await loadRows("website")}}}>{item.status==="published"?"Unpublish":"Publish"}</button><button type="button" onClick={async()=>{const table=item.starts_at?"school_events":"school_gallery";if(!window.confirm("Delete this website item?"))return;const r=await supabase.from(table as any).delete().eq("id",item.id);if(r.error)setError(r.error.message);else{setSuccess("Website item deleted.");await loadRows("website")}}}>Delete</button></article>)}</div>}
+  </section>}
   {active==="news"&&<section className="module-panel">{heading}
    <p className="module-empty">Teachers submit stories for administrator review. Only approved and published posts appear on the public school website.</p>
    <form className="portal-form" onSubmit={e=>submit(e,"school_posts",{title:f.post_title,slug:(f.post_title||"school-news").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")+"-"+Date.now().toString().slice(-6),excerpt:f.post_excerpt||"",content:f.post_content,cover_image_url:f.post_image||null,status:profile.role==="admin"?(f.post_status||"draft"):"pending_review",published_at:profile.role==="admin"&&f.post_status==="published"?new Date().toISOString():null,reviewed_by:profile.role==="admin"&&f.post_status==="published"?profile.id:null,created_by:profile.id})}>
