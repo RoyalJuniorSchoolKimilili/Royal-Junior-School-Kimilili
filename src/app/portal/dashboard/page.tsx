@@ -73,6 +73,7 @@ export default function ProtectedDashboardPage(){
  const [f,setF]=useState<Record<string,string>>({date:today(),study_mode:"day",status:"present",method:"mpesa",audience:"all",role:"teacher",approval_status:"approved",year:String(new Date().getFullYear()),term_number:"1",grade_level:"Grade 1"});
  const [doc,setDoc]=useState<Record<string,string>>({date:today(),admission_no:"",learner:"",guardian:"",class_name:"",report_date:today(),principal:"Headteacher"});
  const [receipt,setReceipt]=useState<Row|null>(null);
+ const [galleryFile,setGalleryFile]=useState<File|null>(null);
  const modules=useMemo(()=>profile?roleModules[profile.role]:[],[profile]);
  const set=(key:string,value:string)=>setF(old=>({...old,[key]:value}));
  const loadLookups=useCallback(async()=>{
@@ -115,6 +116,30 @@ export default function ProtectedDashboardPage(){
   if(result.error){setError(result.error.message);return;}
   setSuccess("Saved successfully.");after?.(result.data);setF({date:today(),study_mode:"day",status:"present",method:"mpesa",audience:"all",role:"teacher",approval_status:"approved",year:String(new Date().getFullYear()),term_number:"1"});
   await loadRows(active);await loadLookups();
+ };
+ const saveGallery=async(e:FormEvent<HTMLFormElement>)=>{
+  e.preventDefault();setBusy(true);setError("");setSuccess("");
+  let imageUrl=(f.gallery_image??"").trim();let uploadedPath:string|null=null;
+  if(galleryFile){
+   const allowed=["image/jpeg","image/png","image/webp","image/gif"];
+   if(!allowed.includes(galleryFile.type)){setBusy(false);setError("Choose a JPG, PNG, WebP or GIF image.");return;}
+   if(galleryFile.size>8*1024*1024){setBusy(false);setError("The image must be 8 MB or smaller.");return;}
+   const ext=galleryFile.type==="image/jpeg"?"jpg":galleryFile.type.split("/")[1];
+   uploadedPath=profile.id+"/"+Date.now()+"-"+crypto.randomUUID()+"."+ext;
+   const upload=await supabase.storage.from("school-gallery").upload(uploadedPath,galleryFile,{cacheControl:"3600",contentType:galleryFile.type,upsert:false});
+   if(upload.error){setBusy(false);setError("Photo upload failed: "+upload.error.message);return;}
+   imageUrl=supabase.storage.from("school-gallery").getPublicUrl(uploadedPath).data.publicUrl;
+  }
+  if(!imageUrl){setBusy(false);setError("Choose a photo from your phone or enter an HTTPS image URL.");return;}
+  if(!galleryFile&&!/^https:\/\//i.test(imageUrl)){setBusy(false);setError("The image URL must start with HTTPS.");return;}
+  const result=await supabase.from("school_gallery").insert({title:f.gallery_title,description:f.gallery_description||"",image_url:imageUrl,category:f.gallery_category||"School life",display_order:Number(f.gallery_order||0),status:f.gallery_status||"draft",created_by:profile.id});
+  if(result.error){
+   if(uploadedPath) await supabase.storage.from("school-gallery").remove([uploadedPath]);
+   setBusy(false);setError(result.error.message);return;
+  }
+  setBusy(false);setSuccess("Photograph uploaded and saved.");setGalleryFile(null);
+  setF({date:today(),study_mode:"day",status:"present",method:"mpesa",audience:"all",role:"teacher",approval_status:"approved",year:String(new Date().getFullYear()),term_number:"1",grade_level:"Grade 1"});
+  await loadRows("website");await loadLookups();
  };
  const changeApproval=async(id:string,role:string,approval_status:string)=>{
   setError("");setSuccess("");const r=await supabase.from("profiles").update({role,approval_status}).eq("id",id);
@@ -193,7 +218,7 @@ export default function ProtectedDashboardPage(){
   {active==="fees"&&<section className="module-panel">{heading}{profile.role==="admin"&&<form className="portal-form" onSubmit={e=>submit(e,"fee_payments",{learner_id:f.learner_id,amount_kes:Number(f.amount),payment_method:f.method,payment_reference:f.reference||null,receipt_number:f.receipt_number||("RJS-"+Date.now()),paid_at:f.date?new Date(f.date+"T12:00:00").toISOString():new Date().toISOString(),status:"approved",recorded_by:profile.id,approved_by:profile.id,approved_at:new Date().toISOString(),notes:f.notes||null},data=>setReceipt(data))}><h4>+ Record confirmed fee payment & issue receipt</h4><Field label="Learner">{learnerSelect}</Field>{field("amount","Amount received (KES)","number") }<Field label="Payment method"><SelectInput value={f.method} onChange={(e:any)=>set("method",e.target.value)}><option value="mpesa">M-Pesa</option><option value="cash">Cash</option><option value="bank">Bank</option><option value="other">Other</option></SelectInput></Field>{field("reference","M-Pesa / bank reference","text",false)}{field("receipt_number","Receipt number (leave blank for auto number)","text",false)}{field("date","Payment date","date")}<button className="auth-button" disabled={busy}>Save payment & create receipt</button></form>}{receipt&&<div className="document-preview"><ReceiptDocument row={receipt} learner={learners.find(x=>x.id===receipt.learner_id)} onPrint={print}/></div>}{tableView(["learner_id","amount_kes","payment_method","payment_reference","receipt_number","status","paid_at"])}</section>}
   {active==="approvals"&&<section className="module-panel">{heading}{profile.role==="admin"?<div className="approval-list">{profiles.map(p=><div className="approval-row" key={p.id}><div><strong>{p.full_name||"Unnamed account"}</strong><small>{p.phone||"No phone"} · {p.role} · {p.approval_status}</small></div><div className="approval-actions"><select defaultValue={p.role} id={"role-"+p.id}><option value="admin">Admin</option><option value="teacher">Teacher</option><option value="parent">Parent</option></select><select defaultValue={p.approval_status} id={"status-"+p.id}><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select><button type="button" onClick={()=>changeApproval(p.id,(document.getElementById("role-"+p.id) as HTMLSelectElement).value,(document.getElementById("status-"+p.id) as HTMLSelectElement).value)}>Save</button></div></div>)}</div>:<p>Only administrators can approve accounts.</p>}</section>}
   {active==="website"&&<section className="module-panel">{heading}
-   <p className="module-empty">Manage school events and photographs shown to parents. Only published items appear publicly. Use a direct HTTPS image link for each photograph.</p>
+   <p className="module-empty">Manage school events and photographs shown to parents. Only published items appear publicly. Upload a photo directly from your phone (JPG, PNG, WebP or GIF, maximum 8 MB), or paste an HTTPS image URL.</p>
    <div className="module-tiles">
     <a className="module-tile" href="/Royal-Junior-School-Kimilili/events/" target="_blank" rel="noreferrer"><strong>Preview events calendar</strong><span>See upcoming published school events.</span></a>
     <a className="module-tile" href="/Royal-Junior-School-Kimilili/gallery/" target="_blank" rel="noreferrer"><strong>Preview photo gallery</strong><span>See published school photographs.</span></a>
@@ -207,13 +232,15 @@ export default function ProtectedDashboardPage(){
     <button className="auth-button" disabled={busy}>Save event</button>
    </form>
    <h4>+ Add a school photograph</h4>
-   <form className="portal-form" onSubmit={e=>submit(e,"school_gallery",{title:f.gallery_title,description:f.gallery_description||"",image_url:f.gallery_image,category:f.gallery_category||"School life",display_order:Number(f.gallery_order||0),status:f.gallery_status||"draft",created_by:profile.id})}>
-    {field("gallery_title","Photo title")}{field("gallery_image","Image URL (HTTPS)","url")}
+   <form className="portal-form" onSubmit={saveGallery}>
+    {field("gallery_title","Photo title")}
+    <Field label="Choose photo from phone"><input className="portal-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e=>setGalleryFile(e.target.files?.[0]??null)}/>{galleryFile&&<small>Selected: {galleryFile.name} · {(galleryFile.size/1024/1024).toFixed(2)} MB</small>}</Field>
+    {field("gallery_image","Or image URL (HTTPS)","url",false)}
     {longField("gallery_description","Photo description")}
     {field("gallery_category","Category (e.g. Sports, Class activities)","text",false)}
     {field("gallery_order","Display order","number",false)}
     <Field label="Visibility"><SelectInput value={f.gallery_status??"draft"} onChange={(e:any)=>set("gallery_status",e.target.value)}><option value="draft">Save as draft</option><option value="published">Publish to website</option></SelectInput></Field>
-    <button className="auth-button" disabled={busy}>Save photograph</button>
+    <button className="auth-button" disabled={busy}>{busy?"Uploading and saving…":"Upload / save photograph"}</button>
    </form>
    <h4>Existing events and photographs</h4>
    {loading?<p>Loading website content…</p>:rows.length===0?<p className="module-empty">No events yet. Add the first one above.</p>:<div className="approval-list">{rows.map(item=><article className="approval-row" key={item.id}><div><strong>{item.title}</strong><small>{item.status} · {item.starts_at?new Date(item.starts_at).toLocaleString("en-KE"):item.category||"Photo"}</small><p>{item.description}</p></div><button type="button" onClick={async()=>{const table=item.starts_at?"school_events":"school_gallery";const r=await supabase.from(table as any).update({status:item.status==="published"?"draft":"published",updated_at:new Date().toISOString()}).eq("id",item.id);if(r.error)setError(r.error.message);else{setSuccess("Website item visibility updated.");await loadRows("website")}}}>{item.status==="published"?"Unpublish":"Publish"}</button><button type="button" onClick={async()=>{const table=item.starts_at?"school_events":"school_gallery";if(!window.confirm("Delete this website item?"))return;const r=await supabase.from(table as any).delete().eq("id",item.id);if(r.error)setError(r.error.message);else{setSuccess("Website item deleted.");await loadRows("website")}}}>Delete</button></article>)}</div>}
