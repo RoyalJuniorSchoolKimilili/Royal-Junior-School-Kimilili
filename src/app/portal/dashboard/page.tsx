@@ -73,7 +73,7 @@ export default function ProtectedDashboardPage(){
  const router=useRouter(), supabase=useMemo(()=>createSupabaseBrowserClient(),[]);
  const [profile,setProfile]=useState<Profile|null>(null),[status,setStatus]=useState("loading"),[message,setMessage]=useState("Checking your school account…");
  const [active,setActive]=useState<ModuleKey>("overview"),[rows,setRows]=useState<Row[]>([]),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
- const [assessmentOptions,setAssessmentOptions]=useState<Row[]>([]),[learners,setLearners]=useState<Row[]>([]),[classes,setClasses]=useState<Row[]>([]),[subjects,setSubjects]=useState<Row[]>([]),[terms,setTerms]=useState<Row[]>([]),[profiles,setProfiles]=useState<Row[]>([]),[studentLinks,setStudentLinks]=useState<Row[]>([]),[linkSelections,setLinkSelections]=useState<Record<string,string>>({});
+ const [assessmentOptions,setAssessmentOptions]=useState<Row[]>([]),[learners,setLearners]=useState<Row[]>([]),[classes,setClasses]=useState<Row[]>([]),[subjects,setSubjects]=useState<Row[]>([]),[subjectGradeLevels,setSubjectGradeLevels]=useState<Row[]>([]),[terms,setTerms]=useState<Row[]>([]),[profiles,setProfiles]=useState<Row[]>([]),[studentLinks,setStudentLinks]=useState<Row[]>([]),[linkSelections,setLinkSelections]=useState<Record<string,string>>({});
  const [busy,setBusy]=useState(false),[success,setSuccess]=useState(""),[error,setError]=useState("");
  const [f,setF]=useState<Record<string,string>>({date:today(),study_mode:"day",status:"present",method:"mpesa",audience:"all",role:"teacher",approval_status:"approved",year:String(new Date().getFullYear()),term_number:"1",grade_level:"Grade 1"});
  const [doc,setDoc]=useState<Record<string,string>>({date:today(),admission_no:"",learner:"",guardian:"",class_name:"",report_date:today(),principal:"Headteacher"});
@@ -88,18 +88,19 @@ export default function ProtectedDashboardPage(){
   const profileQuery=profile?.role==="admin"
    ? supabase.from("profiles").select("id,full_name,role,approval_status,phone").order("created_at",{ascending:false}).limit(200)
    : Promise.resolve({data:[] as Row[],error:null});
-  const [l,c,s,t,p]=await Promise.all([
+  const [l,c,s,t,p,g]=await Promise.all([
    learnerQuery,
    supabase.from("classes").select("id,name,level_order").eq("active",true).order("level_order"),
    supabase.from("subjects").select("id,name").eq("active",true).order("name"),
    supabase.from("academic_terms").select("id,name,academic_year,term_number").order("academic_year",{ascending:false}),
-   profileQuery
+   profileQuery,
+   (supabase as any).from("subject_grade_levels").select("grade_level,subject_id,is_optional")
   ]);
   const a=profile?.role==="bursar"||profile?.role==="student"
    ? {data:[] as Row[]}
    : await supabase.from("assessments").select("id,title,class_id").order("created_at",{ascending:false}).limit(300);
   const links=profile?.role==="admin"?await (supabase as any).from("student_learner_links").select("user_id,learner_id,linked_at"): {data:[] as Row[]};
-  setAssessmentOptions(a.data??[]);setLearners(l.data??[]);setClasses(c.data??[]);setSubjects(s.data??[]);setTerms(t.data??[]);setProfiles(p.data??[]);setStudentLinks(links.data??[]);setLinkSelections(Object.fromEntries((links.data??[]).map((x:Row)=>[x.user_id,x.learner_id])));
+  setAssessmentOptions(a.data??[]);setLearners(l.data??[]);setClasses(c.data??[]);setSubjects(s.data??[]);setSubjectGradeLevels(g.data??[]);setTerms(t.data??[]);setProfiles(p.data??[]);setStudentLinks(links.data??[]);setLinkSelections(Object.fromEntries((links.data??[]).map((x:Row)=>[x.user_id,x.learner_id])));
  },[supabase,profile?.role]);
  const loadRows=useCallback(async(key:ModuleKey)=>{
   setLoading(true);setNotice("");
@@ -201,8 +202,11 @@ export default function ProtectedDashboardPage(){
  const cbeMulti=(key:string,label:string,options:string[]) => <section className="cbe-multi-section" aria-label={label}><div className="cbe-multi-heading"><span>{label}</span><small>Select all that apply</small></div><div className="cbe-check-grid">{options.map((option,index)=><label key={option} className="cbe-check"><input type="checkbox" checked={(f[key]??"").split(" | ").filter(Boolean).includes(option)} onChange={e=>{const selected=(f[key]??"").split(" | ").filter(Boolean);set(key,e.target.checked?[...selected,option].join(" | "):selected.filter(x=>x!==option).join(" | "))}}/><span className="cbe-check-copy"><strong>{option}</strong></span></label>)}</div><p className="cbe-selected-count">{(f[key]??"").split(" | ").filter(Boolean).length} selected</p></section>;
  const learnerSelect=<SelectInput required value={f.learner_id??""} onChange={(e:any)=>set("learner_id",e.target.value)}>{learners.map(x=><option key={x.id} value={x.id}>{x.admission_number} — {x.full_name}</option>)}</SelectInput>;
  const classSelect=<SelectInput required value={f.class_id??""} onChange={(e:any)=>set("class_id",e.target.value)}>{classes.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</SelectInput>;
- const allowedAreas=cbeGradeAreas[f.grade_level??"Grade 1"]??subjects.map(x=>x.name);
- const subjectSelect=<SelectInput required value={f.subject_id??""} onChange={(e:any)=>set("subject_id",e.target.value)}>{subjects.filter(x=>allowedAreas.includes(x.name)).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</SelectInput>;
+ const selectedGrade=f.grade_level??"Grade 1";
+ const mappedSubjectIds=subjectGradeLevels.filter(x=>x.grade_level===selectedGrade).map(x=>x.subject_id);
+ const allowedAreas=cbeGradeAreas[selectedGrade]??[];
+ const gradeSubjects=mappedSubjectIds.length?subjects.filter(x=>mappedSubjectIds.includes(x.id)):subjects.filter(x=>allowedAreas.includes(x.name));
+ const subjectSelect=<SelectInput required value={f.subject_id??""} onChange={(e:any)=>set("subject_id",e.target.value)}>{gradeSubjects.map(x=><option key={x.id} value={x.id}>{x.name}{subjectGradeLevels.some(m=>m.grade_level===selectedGrade&&m.subject_id===x.id&&m.is_optional)?" (optional choice)":""}</option>)}</SelectInput>;
  const termSelect=<SelectInput required value={f.term_id??""} onChange={(e:any)=>set("term_id",e.target.value)}>{terms.map(x=><option key={x.id} value={x.id}>{x.name} {x.academic_year}</option>)}</SelectInput>;
  const heading=<div className="module-panel-heading"><div><h3>{info[active].title}</h3><p>{info[active].description}</p></div><button type="button" className="refresh-button" onClick={()=>loadRows(active)}>Refresh</button></div>;
  const tableView=(columns:string[])=>loading?<p>Loading records…</p>:notice?<p className="module-empty">{notice}</p>:<div className="table-scroll"><table className="school-data-table"><thead><tr>{columns.map(c=><th key={c}>{c.replaceAll("_"," ")}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={r.id??i}>{columns.map(c=><td key={c}>{active==="learners"&&c==="full_name"&&r.id?<a className="learner-profile-link" href={"/Royal-Junior-School-Kimilili/portal/learner/?id="+encodeURIComponent(String(r.id))}>{String(r[c]??"—")} ↗</a>:String(r[c]??"—")}</td>)}</tr>)}</tbody></table></div>;
