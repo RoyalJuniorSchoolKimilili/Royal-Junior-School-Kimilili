@@ -1,6 +1,6 @@
 # Royal Junior School Kimilili
 
-School management system for Royal Junior School Kimilili.
+School website and management portal for Royal Junior School Kimilili.
 
 ## Technology
 - Next.js App Router with static export.
@@ -11,31 +11,50 @@ School management system for Royal Junior School Kimilili.
 1. Install Node.js 22 or later.
 2. Run `npm install`.
 3. Copy `.env.example` to `.env.local`.
-4. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the Supabase project URL and publishable/anon key.
+4. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 5. Run `npm run dev`.
 
 ## Deployment
-Pushing to `main` runs the GitHub Actions Pages workflow. The repository's GitHub Pages setting must use **GitHub Actions** as its build and deployment source.
+Pushing to `main` runs the GitHub Actions Pages workflow. Set the repository's Pages build source to **GitHub Actions**.
+
+Add these two GitHub Actions repository variables under **Settings → Secrets and variables → Actions → Variables**:
+- `NEXT_PUBLIC_SUPABASE_URL` = `https://rtfltpwzrjylympskeus.supabase.co`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = the Supabase project's publishable key.
+
+These are public browser configuration values, not service credentials. Never add a service-role or secret key to GitHub variables used by the static frontend.
 
 The production build exports to `out/` and uses the repository base path `/Royal-Junior-School-Kimilili`.
 
+## School website
+The original school HTML is preserved at `public/legacy-school.html` and is currently displayed by the Next.js homepage. This keeps the existing crest, branding, school details, admissions and fee information intact while the new portal is developed separately.
+
+## Supabase database
+The initial database schema is applied to the Supabase project. Migration files are in `supabase/migrations/`; the access model is documented in [docs/DATABASE-DESIGN.md](docs/DATABASE-DESIGN.md).
+
+Created tables include profiles, classes, subjects, academic terms, learners, parent links, teacher assignments, attendance, assessments, marks, fee structures, fee payments, payment submissions, learner documents, notices and audit logs.
+
+All 16 public application tables have RLS enabled. The private `learner-documents` Storage bucket is not public. Security advisor currently reports no findings.
+
+### First administrator setup
+1. Create the school's first administrator account in Supabase Authentication.
+2. In Supabase SQL Editor, promote that account (replace the email):
+   ```sql
+   update public.profiles p
+   set role = 'admin', approval_status = 'approved'
+   from auth.users u
+   where p.id = u.id and lower(u.email) = lower('YOUR_ADMIN_EMAIL');
+   ```
+3. Sign in at `/portal/`. The administrator can then approve school-issued teacher/parent accounts, add learners, link guardians and assign classes.
+
+New Auth users automatically receive a pending parent profile. The school must approve the account and link learners before the parent can view school records.
+
+## Payment safety
+Parent payment submissions are claims for staff review only. They do not automatically create approved payments or alter balances. M-Pesa callback verification requires a server-side integration and is not enabled in this static browser application.
+
 ## Security
 - Never commit `.env.local`, service-role keys, passwords or learner records.
-- The browser application may use only the Supabase publishable/anon key.
-- Database RLS policies—not client-side route guards—must enforce admin, teacher and parent access.
-- Keep learner documents in a private Storage bucket with restrictive policies.
-- The existing `public.rls_auto_enable()` function is not callable by PUBLIC, anon or authenticated roles.
-
-## Current implementation status
-The static Next.js foundation and GitHub Pages workflow are committed. The homepage is currently a starter placeholder, not a recreation of the original school website. The original school `index.html` must be supplied again so its exact branding, crest, school information, fees and admissions content can be retained.
-
-The Supabase project is active and has no application tables yet. The school schema and RLS policies have not been applied. Do not use real learner data until those policies have been implemented and tested.
-
-
-## Database design review
-
-See [docs/DATABASE-DESIGN.md](docs/DATABASE-DESIGN.md) for the proposed learner, guardian, teacher, class, attendance, assessment, fee, payment, notice and audit schema and the role-based RLS model. This is a design proposal only; no school tables or policies have been applied.
-
-## Portal sign-in
-
-The initial email/password sign-in page is available at `/portal/`. Configure the public Supabase URL and publishable key as GitHub Actions repository variables before deploying. Do not add a service-role key. Sign-in does not grant access to learner records: the approval/profile schema and RLS policies must be deployed first.
+- The browser application uses only the Supabase publishable key.
+- RLS, not client-side route guards, enforces data access.
+- Pending/rejected accounts cannot access school records.
+- Parent records are limited to linked learners; teacher access is limited to assigned classes.
+- Keep all learner documents in the private Storage bucket.
