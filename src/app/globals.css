@@ -68,3 +68,52 @@ footer { padding: 28px; text-align: center; color: var(--muted); font-size: 13px
   .module-nav { gap: 6px; }
   .module-tab { padding: 9px 10px; font-size: 12px; }
 }
+
+
+/* School management data-entry forms and official print documents */
+.dashboard-brand{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+.dashboard-brand img{width:76px;height:76px;object-fit:contain;border-radius:50%;border:2px solid var(--gold);background:#fff}
+.dashboard-brand h1{margin:0;color:var(--navy);font-size:clamp(25px,5vw,36px)}
+.dashboard-brand .eyebrow{margin-bottom:5px}
+.portal-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px;margin:22px 0;padding:18px;border:1px solid #e0e6ed;border-radius:10px;background:#fbfcfe}
+.portal-form h4{grid-column:1/-1;margin:0 0 4px;color:var(--navy);font-size:18px}
+.portal-field{display:grid;gap:6px;color:var(--navy);font-size:13px;font-weight:700}
+.portal-input,.portal-form textarea,.approval-actions select{width:100%;min-height:43px;padding:10px 11px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:var(--ink);font:inherit;font-size:14px}
+.portal-form textarea{min-height:95px;resize:vertical}
+.portal-form .auth-button{grid-column:1/-1;margin-top:4px}
+.portal-success,.portal-error{padding:12px 14px;border-radius:7px;line-height:1.5}
+.portal-success{background:#edf8f0;color:#176534}
+.portal-error{background:#fff0ef;color:#9e2525;overflow-wrap:anywhere}
+.approval-list{display:grid;gap:10px;margin-top:18px}
+.approval-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px;border:1px solid #e0e6ed;border-radius:8px}
+.approval-row small{display:block;margin-top:5px;color:var(--muted)}
+.approval-actions{display:flex;gap:6px;align-items:center}
+.approval-actions select{min-width:90px;width:auto}
+.approval-actions button{padding:10px 12px;border:0;border-radius:6px;background:var(--navy);color:white;font-weight:700}
+.document-preview{margin:22px 0}
+.official-document{max-width:760px;margin:18px auto;padding:38px;background:white;border:1px solid #dce2e9;color:#1c2938;box-shadow:0 5px 22px rgba(16,43,78,.08);font-family:Arial,Helvetica,sans-serif;line-height:1.7}
+.print-school-head{display:flex;justify-content:center;align-items:center;gap:18px;padding-bottom:18px;border-bottom:3px double var(--gold);text-align:center}
+.print-school-head img{width:88px;height:88px;object-fit:contain}
+.print-school-head h1{margin:0;color:var(--navy);font-size:24px;letter-spacing:.07em}
+.print-school-head p{margin:0;color:#987a2f;font-weight:800;letter-spacing:.25em}
+.print-school-head small{color:#68778a}
+.official-document h2{text-align:center;margin:28px 0;color:var(--navy);font-size:21px;letter-spacing:.08em}
+.official-document p{margin:14px 0}
+.document-date{text-align:right}
+.signature-line{margin-top:40px!important}
+.document-foot{margin-top:34px!important;padding-top:12px;border-top:1px solid #d9e0e8;text-align:center;color:#7c6a3e;font-size:12px;font-weight:700;letter-spacing:.08em}
+.receipt-number{text-align:right;padding:10px;background:#f6f2e8}
+.receipt-amount{display:flex;justify-content:space-between;gap:20px;align-items:center;margin:24px 0;padding:18px;border:2px solid var(--gold);background:#fbf8ef}
+.receipt-amount strong{font-size:24px;color:var(--navy)}
+@media(max-width:650px){.portal-form{grid-template-columns:1fr;padding:14px}.approval-row{align-items:stretch;flex-direction:column}.approval-actions{flex-wrap:wrap}.approval-actions select{flex:1;min-width:100px}.official-document{padding:20px 16px}.print-school-head img{width:66px;height:66px}.print-school-head h1{font-size:17px}.dashboard-brand img{width:60px;height:60px}}
+@media print{
+ @page{size:A4;margin:16mm}
+ body{background:#fff!important}
+ .auth-page{display:block!important;padding:0!important;background:#fff!important}
+ .dashboard-card{width:100%!important;margin:0!important;padding:0!important;box-shadow:none!important;border:0!important}
+ .dashboard-card>*:not(.module-panel){display:none!important}
+ .module-panel>*:not(.document-preview){display:none!important}
+ .document-preview{margin:0!important}
+ .official-document{max-width:none!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important}
+ .no-print{display:none!important}
+}
