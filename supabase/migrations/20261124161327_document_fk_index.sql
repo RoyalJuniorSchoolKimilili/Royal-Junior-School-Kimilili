@@ -1,0 +1,1 @@
+create index learner_documents_learner_idx on public.learner_documents(learner_id);
