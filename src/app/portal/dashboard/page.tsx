@@ -20,7 +20,8 @@ const info: Record<ModuleKey,{title:string;description:string}> = {
  notices:{title:"School notices",description:"Publish announcements to the school community."},
  documents:{title:"Admission letters & receipts",description:"Prepare, preview and print official school documents."},
  news:{title:"School news & blog",description:"Write school stories and submit them for publication."},
- website:{title:"Website content",description:"Manage the public school photo gallery and events calendar."},\n my-records:{title:"My learner records",description:"View your own attendance, assessment results and approved fee payments."}
+ website:{title:"Website content",description:"Manage the public school photo gallery and events calendar."},
+ "my-records":{title:"My learner records",description:"View your own attendance, assessment results and approved fee payments."}
 };
 const roleModules:Record<Profile["role"],ModuleKey[]> = {
  admin:["overview","learners","attendance","assessments","results","classes","fees","approvals","notices","documents","news","website"],
