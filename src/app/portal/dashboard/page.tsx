@@ -82,7 +82,7 @@ export default function ProtectedDashboardPage(){
  const set=(key:string,value:string)=>setF(old=>({...old,[key]:value}));
  const loadLookups=useCallback(async()=>{
   const learnerQuery=profile?.role==="bursar"
-   ? (supabase.rpc("get_finance_learners" as any) as any)
+   ? ((supabase as any).rpc("get_finance_learners") as any)
    : supabase.from("learners").select("id,full_name,admission_number,class_id").order("full_name").limit(500);
   const profileQuery=profile?.role==="admin"
    ? supabase.from("profiles").select("id,full_name,role,approval_status,phone").order("created_at",{ascending:false}).limit(200)
