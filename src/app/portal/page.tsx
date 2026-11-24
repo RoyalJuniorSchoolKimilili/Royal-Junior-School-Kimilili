@@ -7,7 +7,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Profile = {
   full_name: string;
-  role: "admin" | "teacher" | "parent";
+  role: "admin" | "director" | "headteacher" | "bursar" | "teacher" | "parent" | "student";
   approval_status: "pending" | "approved" | "rejected";
 };
 
