@@ -7,10 +7,11 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Profile = { id: string; full_name: string; role: "admin" | "director" | "headteacher" | "bursar" | "teacher" | "parent" | "student"; approval_status: "pending" | "approved" | "rejected" };
 type Row = Record<string, any>;
-type ModuleKey = "overview" | "staff" | "learners" | "attendance" | "assessments" | "results" | "classes" | "fees" | "approvals" | "notices" | "documents" | "news" | "website" | "my-records";
+type ModuleKey = "overview" | "staff" | "parents" | "learners" | "attendance" | "assessments" | "results" | "classes" | "fees" | "approvals" | "notices" | "documents" | "news" | "website" | "my-records";
 const info: Record<ModuleKey,{title:string;description:string}> = {
  overview:{title:"Dashboard overview",description:"School management workspace."},
  staff:{title:"Staff & teaching assignments",description:"View approved staff accounts and assign teachers to classes and learning areas."},
+ parents:{title:"Parents & guardians",description:"Link approved parent accounts to the correct learner records."},
  learners:{title:"Learners & admissions",description:"Register learners and prepare admission letters."},
  attendance:{title:"Daily attendance",description:"Record attendance for learners in your assigned classes."},
  assessments:{title:"CBE assessments",description:"Create continuous assessment activities by class, learning area and term."},
@@ -25,7 +26,7 @@ const info: Record<ModuleKey,{title:string;description:string}> = {
  "my-records":{title:"My learner records",description:"View your own attendance, assessment results and approved fee payments."}
 };
 const roleModules:Record<Profile["role"],ModuleKey[]> = {
- admin:["overview","staff","learners","attendance","assessments","results","classes","fees","approvals","notices","documents","news","website"],
+ admin:["overview","staff","parents","learners","attendance","assessments","results","classes","fees","approvals","notices","documents","news","website"],
  director:["overview","learners","attendance","assessments","results","classes","fees","notices"],
  headteacher:["overview","learners","attendance","assessments","results","classes","notices","documents"],
  bursar:["overview","fees"],
@@ -74,7 +75,7 @@ export default function ProtectedDashboardPage(){
  const router=useRouter(), supabase=useMemo(()=>createSupabaseBrowserClient(),[]);
  const [profile,setProfile]=useState<Profile|null>(null),[status,setStatus]=useState("loading"),[message,setMessage]=useState("Checking your school account…");
  const [active,setActive]=useState<ModuleKey>("overview"),[rows,setRows]=useState<Row[]>([]),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
- const [assessmentOptions,setAssessmentOptions]=useState<Row[]>([]),[feeStructures,setFeeStructures]=useState<Row[]>([]),[learners,setLearners]=useState<Row[]>([]),[classes,setClasses]=useState<Row[]>([]),[subjects,setSubjects]=useState<Row[]>([]),[subjectGradeLevels,setSubjectGradeLevels]=useState<Row[]>([]),[terms,setTerms]=useState<Row[]>([]),[profiles,setProfiles]=useState<Row[]>([]),[studentLinks,setStudentLinks]=useState<Row[]>([]),[linkSelections,setLinkSelections]=useState<Record<string,string>>({}),[linkGradeSelections,setLinkGradeSelections]=useState<Record<string,string>>({});
+ const [assessmentOptions,setAssessmentOptions]=useState<Row[]>([]),[feeStructures,setFeeStructures]=useState<Row[]>([]),[parentLinks,setParentLinks]=useState<Row[]>([]),[parentLinkSelections,setParentLinkSelections]=useState<Record<string,string>>({}),[parentLinkGradeSelections,setParentLinkGradeSelections]=useState<Record<string,string>>({}),[learners,setLearners]=useState<Row[]>([]),[classes,setClasses]=useState<Row[]>([]),[subjects,setSubjects]=useState<Row[]>([]),[subjectGradeLevels,setSubjectGradeLevels]=useState<Row[]>([]),[terms,setTerms]=useState<Row[]>([]),[profiles,setProfiles]=useState<Row[]>([]),[studentLinks,setStudentLinks]=useState<Row[]>([]),[linkSelections,setLinkSelections]=useState<Record<string,string>>({}),[linkGradeSelections,setLinkGradeSelections]=useState<Record<string,string>>({});
  const [busy,setBusy]=useState(false),[success,setSuccess]=useState(""),[error,setError]=useState("");
  const [f,setF]=useState<Record<string,string>>({date:today(),study_mode:"day",status:"present",method:"mpesa",audience:"all",role:"teacher",approval_status:"approved",year:String(new Date().getFullYear()),term_number:"1",grade_level:"Grade 1"});
  const [doc,setDoc]=useState<Record<string,string>>({date:today(),admission_no:"",learner:"",guardian:"",class_name:"",report_date:today(),principal:"Headteacher"});
@@ -102,6 +103,8 @@ export default function ProtectedDashboardPage(){
    ? {data:[] as Row[]}
    : await supabase.from("assessments").select("id,title,class_id").order("created_at",{ascending:false}).limit(300);
   const links=profile?.role==="admin"?await (supabase as any).from("student_learner_links").select("user_id,learner_id,linked_at"): {data:[] as Row[]};
+  const parentLinksResult=profile?.role==="admin"?await supabase.from("parent_learners").select("id,parent_id,learner_id,relationship,primary_contact"): {data:[] as Row[]};
+  setParentLinks(parentLinksResult.data??[]);setParentLinkSelections(Object.fromEntries((parentLinksResult.data??[]).map((x:any)=>[x.parent_id+":"+x.learner_id,x.learner_id])));
   setAssessmentOptions(a.data??[]);setLearners(l.data??[]);setClasses(c.data??[]);setSubjects(s.data??[]);setSubjectGradeLevels(g.data??[]);setTerms(t.data??[]);setProfiles(p.data??[]);setStudentLinks(links.data??[]);setLinkSelections(Object.fromEntries((links.data??[]).map((x:Row)=>[x.user_id,x.learner_id])));
  },[supabase,profile?.role]);
  const loadRows=useCallback(async(key:ModuleKey)=>{
@@ -123,6 +126,20 @@ export default function ProtectedDashboardPage(){
     ...(feesResult.data??[]).map(x=>({record:"Fee payment",date:x.paid_at,details:"KES "+x.amount_kes+" · "+x.payment_method+" · "+(x.receipt_number||"No receipt number"),status:x.status}))
    ].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime());
    setRows(combined);setNotice(learnerResult.data?learnerResult.data.full_name+" · Admission "+learnerResult.data.admission_number+(combined.length?"":" · No attendance, assessment or approved payment records are available yet."):learnerResult.error?.message??"Learner record is unavailable.");setLoading(false);return;
+  }
+  if(key==="parents"){
+   const [parentsResult,linksResult,learnersResult,classesResult]=await Promise.all([
+    supabase.from("profiles").select("id,full_name,phone,approval_status").eq("role","parent").order("full_name"),
+    supabase.from("parent_learners").select("id,parent_id,learner_id,relationship,primary_contact").order("created_at",{ascending:false}),
+    supabase.from("learners").select("id,full_name,admission_number,class_id"),
+    supabase.from("classes").select("id,name")
+   ]);
+   const parentNames=Object.fromEntries((parentsResult.data??[]).map((x:any)=>[x.id,x.full_name]));
+   const learnerNames=Object.fromEntries((learnersResult.data??[]).map((x:any)=>[x.id,x.full_name+" · "+x.admission_number]));
+   const classNames=Object.fromEntries((classesResult.data??[]).map((x:any)=>[x.id,x.name]));
+   const accountRows=(parentsResult.data??[]).map((x:any)=>({id:x.id,record_type:"Parent account",parent_name:x.full_name,phone:x.phone??"—",approval_status:x.approval_status,learner:"—",grade:"—",relationship:"—"}));
+   const linkRows=(linksResult.data??[]).map((x:any)=>({id:x.id,record_type:"Linked learner",parent_name:parentNames[x.parent_id]??"Parent account",phone:"—",approval_status:"—",learner:learnerNames[x.learner_id]??"Learner unavailable",grade:classNames[(learnersResult.data??[]).find((l:any)=>l.id===x.learner_id)?.class_id]??"Unassigned",relationship:x.relationship??"Guardian"}));
+   setRows([...accountRows,...linkRows]);setNotice(parentsResult.error?.message??linksResult.error?.message??learnersResult.error?.message??classesResult.error?.message??(!accountRows.length?"No parent accounts yet. Approve parent accounts in Staff & parent approvals first.":""));setLoading(false);return;
   }
   if(key==="staff"){
    const [staffResult,assignmentResult,classResult,subjectResult]=await Promise.all([
@@ -209,6 +226,18 @@ export default function ProtectedDashboardPage(){
   setError("");setSuccess("");const r=await supabase.from("profiles").update({role,approval_status}).eq("id",id);
   if(r.error)setError(r.error.message);else{setSuccess("Account updated.");await loadRows("approvals");await loadLookups()}
  };
+ const saveParentLink=async(parentId:string)=>{
+  const learnerId=parentLinkSelections[parentId];
+  if(!learnerId){setError("Select a learner before linking this parent account.");return;}
+  const result=await supabase.from("parent_learners").upsert({parent_id:parentId,learner_id:learnerId,relationship:"Parent / Guardian",primary_contact:true},{onConflict:"parent_id,learner_id"});
+  if(result.error){setError(result.error.message);return;}
+  setSuccess("Parent account linked to the selected learner.");await loadLookups();await loadRows("parents");
+ };
+ const removeParentLink=async(id:string)=>{
+  const result=await supabase.from("parent_learners").delete().eq("id",id);
+  if(result.error){setError(result.error.message);return;}
+  setSuccess("Parent-to-learner link removed.");await loadLookups();await loadRows("parents");
+ };
  const saveStudentLink=async(userId:string)=>{
   const learnerId=linkSelections[userId];
   if(!learnerId){setError("Select a learner before saving the link.");return;}
@@ -273,6 +302,7 @@ export default function ProtectedDashboardPage(){
   {success&&<p className="portal-success" role="status">{success}</p>}{error&&<p className="portal-error" role="alert">{error}</p>}
   {active==="my-records"&&<section className="module-panel">{heading}<p className="module-empty">{notice}</p>{loading?<p>Loading your records…</p>:rows.length===0?<p>No records to display.</p>:<div className="table-scroll"><table className="school-data-table"><thead><tr><th>Record</th><th>Date</th><th>Details</th><th>Status</th></tr></thead><tbody>{rows.map((r,i)=><tr key={i}><td>{r.record}</td><td>{r.date?new Date(r.date).toLocaleDateString("en-KE"):"—"}</td><td>{r.details||"—"}</td><td>{r.status||"—"}</td></tr>)}</tbody></table></div>}</section>}
   {active==="overview"&&<div className="module-tiles">{modules.filter(k=>k!=="overview").map(k=><button key={k} className="module-tile" onClick={()=>setActive(k)}><strong>{info[k].title}</strong><span>{info[k].description}</span><em>Open section →</em></button>)}</div>}
+  {active==="parents"&&<section className="module-panel">{heading}<p className="module-empty">Link each approved parent / guardian login to the correct learner. Parent access is limited by database policies to linked children only. Select the grade first, then the learner. Do not link accounts by matching names or phone numbers alone.</p><div className="approval-list">{profiles.filter(p=>p.role==="parent").map(p=><div className="approval-row" key={p.id}><div><strong>{p.full_name||"Parent account"}</strong><small>{p.phone||"No phone"} · {p.approval_status}</small></div><div className="approval-actions"><div style={{display:"grid",gap:6,minWidth:220}}><select aria-label="Select learner grade" value={parentLinkGradeSelections[p.id]??""} onChange={e=>{setParentLinkGradeSelections(old=>({...old,[p.id]:e.target.value}));setParentLinkSelections(old=>({...old,[p.id]:""}));}}><option value="">1. Select grade / class</option>{feeGradeOptions.map(g=><option key={g} value={g}>{g}</option>)}</select><select aria-label="Select learner" disabled={!parentLinkGradeSelections[p.id]} value={parentLinkSelections[p.id]??""} onChange={e=>setParentLinkSelections(old=>({...old,[p.id]:e.target.value}))}><option value="">2. Select learner</option>{learners.filter(l=>(classes.find(c=>c.id===l.class_id)?.name??"Unassigned")===parentLinkGradeSelections[p.id]).map(l=><option key={l.id} value={l.id}>{l.admission_number} — {l.full_name}</option>)}</select></div><button type="button" onClick={()=>saveParentLink(p.id)}>Link learner</button></div></div>)}</div><h4>Existing parent / learner links</h4>{tableView(["record_type","parent_name","phone","approval_status","learner","grade","relationship"])}</section>}
   {active==="staff"&&<section className="module-panel">{heading}<p className="module-empty">Staff accounts are managed through account approvals. This section shows staff roles and teaching assignments. Only approved teachers should be assigned to classes. Staff account details are visible to administrators only.</p><form className="portal-form" onSubmit={async e=>{e.preventDefault();if(!f.teacher_id||!f.assignment_class_id){setError("Select a teacher and class.");return;}let duplicateQuery=(supabase as any).from("teacher_classes").select("id").eq("teacher_id",f.teacher_id).eq("class_id",f.assignment_class_id);if(f.assignment_subject_id)duplicateQuery=duplicateQuery.eq("subject_id",f.assignment_subject_id);else duplicateQuery=duplicateQuery.is("subject_id",null);const duplicate=await duplicateQuery.maybeSingle();if(duplicate.error){setError(duplicate.error.message);return;}if(duplicate.data){setError("This teacher is already assigned to that class and learning area.");return;}await submit(e,"teacher_classes",{teacher_id:f.teacher_id,class_id:f.assignment_class_id,subject_id:f.assignment_subject_id||null});}}><h4>+ Assign teacher to a class / learning area</h4><Field label="Approved teacher"><SelectInput required value={f.teacher_id??""} onChange={(e:any)=>set("teacher_id",e.target.value)}>{profiles.filter(p=>p.role==="teacher"&&p.approval_status==="approved").map(p=><option key={p.id} value={p.id}>{p.full_name||"Teacher"} · {p.phone||"No phone"}</option>)}</SelectInput></Field><Field label="Class / grade"><SelectInput required value={f.assignment_class_id??""} onChange={(e:any)=>set("assignment_class_id",e.target.value)}>{classes.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</SelectInput></Field><Field label="Learning area (optional)"><SelectInput value={f.assignment_subject_id??""} onChange={(e:any)=>set("assignment_subject_id",e.target.value)}>{subjects.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</SelectInput></Field><button className="auth-button" disabled={busy}>Save teaching assignment</button></form><h4>Staff accounts and teaching assignments</h4>{tableView(["record_type","full_name","phone","role","approval_status","class_name","subject_name"])}</section>}
   {active==="learners"&&<section className="module-panel">{heading}{(profile.role==="admin"||profile.role==="headteacher")&&<form className="portal-form" onSubmit={e=>submit(e,"learners",{admission_number:f.admission_number,full_name:f.full_name,class_id:f.class_id||null,date_of_birth:f.dob||null,gender:f.gender||null,study_mode:f.study_mode,enrollment_status:"active",guardian_name:f.guardian_name||null,guardian_phone:f.guardian_phone||null})}><h4>+ Register learner</h4>{field("admission_number","Admission number")}{field("full_name","Learner full name")}{field("dob","Date of birth","date",false)}<Field label="Gender"><SelectInput value={f.gender??""} onChange={(e:any)=>set("gender",e.target.value)}><option value="female">Female</option><option value="male">Male</option><option value="other">Other</option></SelectInput></Field><Field label="Class">{classSelect}</Field><Field label="Study mode"><SelectInput value={f.study_mode} onChange={(e:any)=>set("study_mode",e.target.value)}><option value="day">Day</option><option value="boarding">Boarding</option></SelectInput></Field>{field("guardian_name","Parent / guardian name", "text",false)}{field("guardian_phone","Parent / guardian phone","tel",false)}<button className="auth-button" disabled={busy}>Save learner</button></form>}{tableView(["admission_number","full_name","class_id","study_mode","enrollment_status"])}</section>}
   {active==="attendance"&&<section className="module-panel">{heading}<form className="portal-form" onSubmit={e=>submit(e,"attendance",{learner_id:f.learner_id,class_id:f.class_id,attendance_date:f.date,status:f.status,note:f.note||null,recorded_by:profile.id})}><h4>+ Record daily attendance</h4><Field label="Class">{classSelect}</Field><Field label="Learner">{learnerSelect}</Field>{field("date","Attendance date","date")}<Field label="Status"><SelectInput value={f.status} onChange={(e:any)=>set("status",e.target.value)}><option value="present">Present</option><option value="absent">Absent</option><option value="late">Late</option><option value="excused">Excused</option></SelectInput></Field>{field("note","Note (optional)","text",false)}<button className="auth-button" disabled={busy}>Save attendance</button></form>{tableView(["attendance_date","learner_id","class_id","status","note"])}</section>}
