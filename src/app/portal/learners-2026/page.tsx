@@ -10,6 +10,7 @@ type LearnerRow = {
   learner_name: string;
   parent_name: string | null;
   parent_phone: string | null;
+  learner_id: string | null;
 };
 
 export default function LearnerDirectory2026Page() {
@@ -37,7 +38,7 @@ export default function LearnerDirectory2026Page() {
         return;
       }
       const { data, error: fetchError } = await (supabase.from("learner_directory_2026" as any) as any)
-        .select("id,grade,learner_name,parent_name,parent_phone")
+        .select("id,grade,learner_name,parent_name,parent_phone,learner_id")
         .order("grade", { ascending: true })
         .order("learner_name", { ascending: true });
       if (!active) return;
@@ -78,7 +79,7 @@ export default function LearnerDirectory2026Page() {
             <table className="school-data-table">
               <thead><tr><th>Grade</th><th>Name</th><th>Parent Name</th><th>Phone</th></tr></thead>
               <tbody>{filtered.map(row => <tr key={row.id}>
-                <td>{row.grade}</td><td>{row.learner_name}</td><td>{row.parent_name ?? ""}</td><td>{row.parent_phone ?? ""}</td>
+                <td>{row.grade}</td><td><a className="directory-learner-link" href={"/Royal-Junior-School-Kimilili/portal/learner/?"+(row.learner_id?"id="+encodeURIComponent(row.learner_id):"directoryId="+encodeURIComponent(row.id))}>{row.learner_name} ↗</a></td><td>{row.parent_name ?? ""}</td><td>{row.parent_phone ?? ""}</td>
               </tr>)}</tbody>
             </table>
           </div>
@@ -89,7 +90,7 @@ export default function LearnerDirectory2026Page() {
         .directory-note{color:#64748b;font-size:.9rem;margin:.5rem 0 1rem}
         .directory-tools{display:grid;grid-template-columns:2fr 1fr;gap:.75rem;margin:1rem 0}
         .directory-tools input,.directory-tools select{min-width:0;width:100%;padding:.8rem;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff;color:#0f172a}
-        .directory-count{font-size:.9rem;color:#475569}
+        .directory-count{font-size:.9rem;color:#475569}.directory-learner-link{color:#1d4ed8;font-weight:650;text-decoration:underline;text-underline-offset:3px}
         @media(max-width:640px){.directory-tools{grid-template-columns:1fr}.directory-card{padding:1rem}}
       `}</style>
     </main>
