@@ -32,7 +32,7 @@ export default function LearnerDirectory2026Page() {
       const { data: profile } = await supabase.from("profiles")
         .select("role, approval_status").eq("id", auth.user.id).maybeSingle();
       if (!profile || profile.approval_status !== "approved" ||
-          (profile.role !== "admin" && profile.role !== "teacher")) {
+          (!["admin", "teacher", "director", "headteacher"].includes(profile.role))) {
         router.replace("/Royal-Junior-School-Kimilili/portal/dashboard/");
         return;
       }
@@ -63,7 +63,7 @@ export default function LearnerDirectory2026Page() {
         <a className="auth-back" href="/Royal-Junior-School-Kimilili/portal/dashboard/">← Back to school dashboard</a>
         <p className="eyebrow">ROYAL JUNIOR SCHOOL · KIMILILI</p>
         <h1>2026 Learner Directory</h1>
-        <p className="directory-note">Confidential school records. Accessible only to approved administrators and teachers.</p>
+        <p className="directory-note">Confidential school records. Accessible only to approved administrators, school leaders and teachers.</p>
         <div className="directory-tools">
           <input aria-label="Search learners" placeholder="Search grade, learner, parent or phone…" value={query} onChange={e => setQuery(e.target.value)} />
           <select aria-label="Filter by grade" value={grade} onChange={e => setGrade(e.target.value)}>
