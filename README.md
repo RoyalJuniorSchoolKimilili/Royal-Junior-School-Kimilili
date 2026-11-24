@@ -19,7 +19,7 @@ Pushing to `main` runs the GitHub Actions Pages workflow. Set the repository's P
 
 The workflow already has the school's public Supabase URL and publishable key as build defaults. You can override them with repository variables named `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` if the project configuration changes. These values are intended for browser use; never place a service-role or secret key in the static frontend.
 
-The production build exports to `out/` and uses the repository base path `/Royal-Junior-School-Kimilili`.
+The production build exports to `out/` and uses the repository base path `/Royal-Junior-School-Kimilili`. The Supabase browser client is typed from the generated schema in `src/types/database.ts`.
 
 ## School website
 The original school HTML is preserved at `public/legacy-school.html` and is currently displayed by the Next.js homepage. This keeps the existing crest, branding, school details, admissions and fee information intact while the new portal is developed separately.
@@ -42,7 +42,7 @@ All 16 public application tables have RLS enabled. The private `learner-document
    ```
 3. Sign in at `/portal/`. The administrator can then approve school-issued teacher/parent accounts, add learners, link guardians and assign classes.
 
-New Auth users automatically receive a pending parent profile. The school must approve the account and link learners before the parent can view school records.
+New Auth users automatically receive a pending parent profile. The school must approve the account and link learners before the parent can view school records. `/portal/dashboard/` uses a client-side session and approval check for navigation; RLS remains the actual security boundary because GitHub Pages does not run Next.js middleware or server routes.
 
 ## Payment safety
 Parent payment submissions are claims for staff review only. They do not automatically create approved payments or alter balances. M-Pesa callback verification requires a server-side integration and is not enabled in this static browser application.
