@@ -136,7 +136,7 @@ export default function ProtectedDashboardPage(){
    const learnerNames=Object.fromEntries((learnersResult.data??[]).map((x:any)=>[x.id,x.full_name+" · "+x.admission_number]));
    const classNames=Object.fromEntries((classesResult.data??[]).map((x:any)=>[x.id,x.name]));
    const accountRows=(parentsResult.data??[]).map((x:any)=>({id:x.id,record_type:"Parent account",parent_name:x.full_name,phone:x.phone??"—",approval_status:x.approval_status,learner:"—",grade:"—",relationship:"—"}));
-   const linkRows=(linksResult.data??[]).map((x:any)=>({id:x.id,record_type:"Linked learner",parent_name:parentNames[x.parent_id]??"Parent account",phone:"—",approval_status:"—",learner:learnerNames[x.learner_id]??"Learner unavailable",grade:classNames[(learnersResult.data??[]).find((l:any)=>l.id===x.learner_id)?.class_id]??"Unassigned",relationship:x.relationship??"Guardian"}));
+   const linkRows=(linksResult.data??[]).map((x:any)=>({id:x.id,record_type:"Linked learner",parent_name:parentNames[x.parent_id]??"Parent account",phone:"—",approval_status:"—",learner:learnerNames[x.learner_id]??"Learner unavailable",grade:classNames[(learnersResult.data??[]).find((l:any)=>l.id===x.learner_id)?.class_id??""]??"Unassigned",relationship:x.relationship??"Guardian"}));
    setRows([...accountRows,...linkRows]);setNotice(parentsResult.error?.message??linksResult.error?.message??learnersResult.error?.message??classesResult.error?.message??(!accountRows.length?"No parent accounts yet. Approve parent accounts in Staff & parent approvals first.":""));setLoading(false);return;
   }
   if(key==="staff"){
