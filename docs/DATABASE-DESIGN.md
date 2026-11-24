@@ -1,6 +1,6 @@
 # Royal Junior School Kimilili — Database and access design
 
-The first database migration is committed at [`supabase/migrations/202611240001_school_core_rls.sql`](../supabase/migrations/202611240001_school_core_rls.sql).
+The first database migration is committed at [`supabase/migrations/20261124161210_school_core_rls.sql`](../supabase/migrations/202611240001_school_core_rls.sql).
 
 ## Account creation
 School-issued accounts are the default. A new Supabase Auth user automatically receives a `profiles` row with role `parent` and status `pending`. A trusted administrator must approve the account and attach the correct learner(s). Users cannot promote or approve themselves.
