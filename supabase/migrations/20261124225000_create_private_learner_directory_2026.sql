@@ -23,7 +23,9 @@ using (exists (
     and p.approval_status = 'approved'
 ));
 drop policy if exists learner_directory_admin_manage on public.learner_directory_2026;
-create policy learner_directory_admin_manage on public.learner_directory_2026
-for all to authenticated
-using ((select private.is_admin()))
-with check ((select private.is_admin()));
+create policy learner_directory_admin_insert on public.learner_directory_2026
+for insert to authenticated with check ((select private.is_admin()));
+create policy learner_directory_admin_update on public.learner_directory_2026
+for update to authenticated using ((select private.is_admin())) with check ((select private.is_admin()));
+create policy learner_directory_admin_delete on public.learner_directory_2026
+for delete to authenticated using ((select private.is_admin()));
