@@ -77,7 +77,8 @@ export default function ProtectedDashboardPage(){
  const [busy,setBusy]=useState(false),[success,setSuccess]=useState(""),[error,setError]=useState("");
  const [f,setF]=useState<Record<string,string>>({date:today(),study_mode:"day",status:"present",method:"mpesa",audience:"all",role:"teacher",approval_status:"approved",year:String(new Date().getFullYear()),term_number:"1",grade_level:"Grade 1"});
  const [doc,setDoc]=useState<Record<string,string>>({date:today(),admission_no:"",learner:"",guardian:"",class_name:"",report_date:today(),principal:"Headteacher"});
- const [receipt,setReceipt]=useState<Row|null>(null);\n const [reportData,setReportData]=useState<Row|null>(null),[reportBusy,setReportBusy]=useState(false);
+ const [receipt,setReceipt]=useState<Row|null>(null);
+ const [reportData,setReportData]=useState<Row|null>(null),[reportBusy,setReportBusy]=useState(false);
  const [galleryFile,setGalleryFile]=useState<File|null>(null);
  const modules=useMemo(()=>profile?roleModules[profile.role]:[],[profile]);
  const set=(key:string,value:string)=>setF(old=>({...old,[key]:value}));
