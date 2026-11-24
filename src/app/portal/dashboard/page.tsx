@@ -89,6 +89,14 @@ export default function ProtectedDashboardPage(){
   setLoading(true);setNotice("");
   const table:Record<string,string>={learners:"learners",attendance:"attendance",assessments:"assessments",results:"marks",classes:"classes",fees:"fee_payments",approvals:"profiles",notices:"notices",news:"school_posts",website:"school_events"};
   if(!table[key]){setRows([]);setLoading(false);return;}
+  if(key==="website"){
+   const [events,photos]=await Promise.all([
+    supabase.from("school_events").select("*").order("created_at",{ascending:false}).limit(100),
+    supabase.from("school_gallery").select("*").order("created_at",{ascending:false}).limit(100)
+   ]);
+   const combined=[...(events.data??[]),...(photos.data??[])].sort((a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime());
+   setRows(combined);setNotice(events.error?.message??photos.error?.message??(!combined.length?"No website content yet. Use the forms below to add the first item.":""));setLoading(false);return;
+  }
   const result=await (supabase.from(table[key] as any) as any).select("*").order("created_at",{ascending:false}).limit(100);
   setRows(result.data??[]);setNotice(result.error?.message??(!result.data?.length?"No records yet. Use the form below to add the first record.":""));setLoading(false);
  },[supabase]);
