@@ -237,7 +237,7 @@ export default function ProtectedDashboardPage(){
  if(status==="loading")return <main className="auth-page"><section className="auth-card"><p>{message}</p></section></main>;
  if(status!=="ready"||!profile)return <main className="auth-page"><section className="auth-card"><h1>School portal</h1><p>{message}</p><button className="auth-button" onClick={()=>router.replace("/portal/")}>Back to sign in</button></section></main>;
  return <main className="auth-page dashboard-page"><section className="auth-card dashboard-card dashboard-wide">
-  <div className="dashboard-brand"><img src={logoSrc} alt="Royal Junior School crest"/><div><p className="eyebrow">ROYAL JUNIOR SCHOOL · KIMILILI</p><h1>School management</h1></div></div>
+  <div className="dashboard-brand"><div><p className="eyebrow">ROYAL JUNIOR SCHOOL · KIMILILI</p><h1>School management</h1></div></div>
   <p className="auth-status">Welcome, <strong>{profile.full_name||"School user"}</strong> · Role: <strong>{profile.role}</strong></p>
   <p className="auth-message">{message}</p>
   {profile.role==="student"&&<p className="module-empty">Student access is reserved until the school links this account to an individual learner record. No other learner records are shown.</p>}
