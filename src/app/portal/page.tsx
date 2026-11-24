@@ -50,19 +50,8 @@ export default function PortalPage() {
       if (active && data.session) void loadProfile(data.session);
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!active) return;
-      if (!session) {
-        setSignedInEmail("");
-        setProfile(null);
-      } else {
-        void loadProfile(session);
-      }
-    });
-
     return () => {
       active = false;
-      listener.subscription.unsubscribe();
     };
   }, []);
 
