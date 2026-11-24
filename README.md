@@ -17,11 +17,7 @@ School website and management portal for Royal Junior School Kimilili.
 ## Deployment
 Pushing to `main` runs the GitHub Actions Pages workflow. Set the repository's Pages build source to **GitHub Actions**.
 
-Add these two GitHub Actions repository variables under **Settings → Secrets and variables → Actions → Variables**:
-- `NEXT_PUBLIC_SUPABASE_URL` = `https://rtfltpwzrjylympskeus.supabase.co`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = the Supabase project's publishable key.
-
-These are public browser configuration values, not service credentials. Never add a service-role or secret key to GitHub variables used by the static frontend.
+The workflow already has the school's public Supabase URL and publishable key as build defaults. You can override them with repository variables named `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` if the project configuration changes. These values are intended for browser use; never place a service-role or secret key in the static frontend.
 
 The production build exports to `out/` and uses the repository base path `/Royal-Junior-School-Kimilili`.
 
