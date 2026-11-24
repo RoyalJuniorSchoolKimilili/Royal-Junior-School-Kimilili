@@ -842,8 +842,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-    }
+      },
       school_posts: {
         Row: {
           content: string
@@ -904,6 +903,7 @@ export type Database = {
           },
         ]
       }
+    }
     Views: {
       [_ in never]: never
     }
