@@ -21,6 +21,15 @@ The workflow already has the school's public Supabase URL and publishable key as
 
 The production build exports to `out/` and uses the repository base path `/Royal-Junior-School-Kimilili`. The Supabase browser client is typed from the generated schema in `src/types/database.ts`.
 
+## Official school email addresses
+
+- General enquiries: info@royaljuniorschoolkimilili.co.ke
+- Admissions: admissions@royaljuniorschoolkimilili.co.ke
+- Accounts and receipts: accounts@royaljuniorschoolkimilili.co.ke
+- Academics: academics@royaljuniorschoolkimilili.co.ke
+
+These are the school's published contact addresses. Create and verify the mailboxes with the domain email host before relying on them for delivery. Configure authenticated email sending separately before enabling automated messages from the portal.
+
 ## School website
 The original school HTML is preserved at `public/legacy-school.html` and is currently displayed by the Next.js homepage. This keeps the existing crest, branding, school details, admissions and fee information intact while the new portal is developed separately.
 
