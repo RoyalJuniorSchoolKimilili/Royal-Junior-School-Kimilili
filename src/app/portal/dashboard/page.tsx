@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -28,11 +29,11 @@ const logoSrc="data:image/webp;base64,UklGRnhqAABXRUJQVlA4IGxqAAAw2gCdASoAAQABPj
 const today=()=>new Date().toISOString().slice(0,10);
 const money=(v:any)=>Number(v||0).toLocaleString("en-KE",{style:"currency",currency:"KES"});
 function PrintHeader(){return <header className="print-school-head"><img src={logoSrc} alt="Royal Junior School crest"/><div><h1>ROYAL JUNIOR SCHOOL</h1><p>KIMILILI</p><small>Competency-Based Education (CBE)</small></div></header>}
-function Field({label,children}:{label:string;children:React.ReactNode}){return <label className="portal-field"><span>{label}</span>{children}</label>}
+function Field({label,children}:{label:string;children:ReactNode}){return <label className="portal-field"><span>{label}</span>{children}</label>}
 function TextInput(props:any){return <input {...props} className="portal-input"/>}
 function SelectInput({children,...props}:any){return <select {...props} className="portal-input"><option value="">Select…</option>{children}</select>}
 export default function ProtectedDashboardPage(){
- const router=useRouter(), supabase=createSupabaseBrowserClient();
+ const router=useRouter(), supabase=useMemo(()=>createSupabaseBrowserClient(),[]);
  const [profile,setProfile]=useState<Profile|null>(null),[status,setStatus]=useState("loading"),[message,setMessage]=useState("Checking your school account…");
  const [active,setActive]=useState<ModuleKey>("overview"),[rows,setRows]=useState<Row[]>([]),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
  const [assessmentOptions,setAssessmentOptions]=useState<Row[]>([]),[learners,setLearners]=useState<Row[]>([]),[classes,setClasses]=useState<Row[]>([]),[subjects,setSubjects]=useState<Row[]>([]),[terms,setTerms]=useState<Row[]>([]),[profiles,setProfiles]=useState<Row[]>([]);
@@ -67,7 +68,7 @@ export default function ProtectedDashboardPage(){
   setStatus("ready");setMessage("Signed in securely. Database permissions control the records you can access.");
  })();return()=>{alive=false}},[router,supabase]);
  useEffect(()=>{if(status==="ready"){void loadLookups();void loadRows(active)}},[status,active,loadLookups,loadRows]);
- const submit=async(e:React.FormEvent<HTMLFormElement>,table:string,payload:Row,after?:(data:Row)=>void)=>{
+ const submit=async(e:FormEvent<HTMLFormElement>,table:string,payload:Row,after?:(data:Row)=>void)=>{
   e.preventDefault();setBusy(true);setError("");setSuccess("");
   const result=await (supabase.from(table as any) as any).insert(payload).select("*").single();
   setBusy(false);
