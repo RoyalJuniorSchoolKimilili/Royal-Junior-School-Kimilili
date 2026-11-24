@@ -117,3 +117,15 @@ footer { padding: 28px; text-align: center; color: var(--muted); font-size: 13px
  .official-document{max-width:none!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important}
  .no-print{display:none!important}
 }
+
+/* Expanded Kenya CBE curriculum planning and learner progress forms */
+.cbe-guidance{margin:16px 0;padding:15px 17px;border-left:4px solid var(--gold);background:#f6f2e8;color:var(--ink);line-height:1.6}
+.cbe-guidance p{margin:7px 0 0}
+.cbe-guidance a{color:var(--navy);font-weight:700;text-decoration:underline}
+.cbe-form h4{grid-column:1/-1;margin:18px 0 2px;padding-bottom:8px;border-bottom:1px solid #e3e8ef;color:var(--navy);font-size:16px}
+.cbe-form h4:first-of-type{margin-top:0}
+.cbe-form textarea{width:100%;min-height:88px;padding:11px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:var(--ink);font:inherit;font-size:14px;line-height:1.5;resize:vertical}
+.cbe-check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cbe-check{display:flex;align-items:flex-start;gap:8px;padding:9px;border:1px solid #dfe5ed;border-radius:7px;background:#fff;color:var(--ink);font-size:13px;font-weight:500;line-height:1.4}
+.cbe-check input{margin:2px 0 0;accent-color:var(--navy);flex:0 0 auto}
+@media(max-width:650px){.cbe-check-grid{grid-template-columns:1fr}.cbe-form h4{margin-top:12px}}
