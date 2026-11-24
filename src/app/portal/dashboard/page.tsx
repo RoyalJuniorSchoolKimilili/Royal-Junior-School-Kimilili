@@ -97,7 +97,8 @@ export default function ProtectedDashboardPage(){
   const a=profile?.role==="bursar"||profile?.role==="student"
    ? {data:[] as Row[]}
    : await supabase.from("assessments").select("id,title,class_id").order("created_at",{ascending:false}).limit(300);
-  const links=profile?.role==="admin"?await supabase.from("student_learner_links").select("user_id,learner_id,linked_at"): {data:[] as Row[]};\n  setAssessmentOptions(a.data??[]);setLearners(l.data??[]);setClasses(c.data??[]);setSubjects(s.data??[]);setTerms(t.data??[]);setProfiles(p.data??[]);setStudentLinks(links.data??[]);setLinkSelections(Object.fromEntries((links.data??[]).map((x:Row)=>[x.user_id,x.learner_id])));
+  const links=profile?.role==="admin"?await supabase.from("student_learner_links").select("user_id,learner_id,linked_at"): {data:[] as Row[]};
+  setAssessmentOptions(a.data??[]);setLearners(l.data??[]);setClasses(c.data??[]);setSubjects(s.data??[]);setTerms(t.data??[]);setProfiles(p.data??[]);setStudentLinks(links.data??[]);setLinkSelections(Object.fromEntries((links.data??[]).map((x:Row)=>[x.user_id,x.learner_id])));
  },[supabase,profile?.role]);
  const loadRows=useCallback(async(key:ModuleKey)=>{
   setLoading(true);setNotice("");
