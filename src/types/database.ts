@@ -902,6 +902,18 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      },
+      school_events: {
+        Row: { id:string; title:string; description:string; location:string|null; starts_at:string; ends_at:string|null; status:string; created_by:string; created_at:string; updated_at:string }
+        Insert: { id?:string; title:string; description?:string; location?:string|null; starts_at:string; ends_at?:string|null; status?:string; created_by:string; created_at?:string; updated_at?:string }
+        Update: { id?:string; title?:string; description?:string; location?:string|null; starts_at?:string; ends_at?:string|null; status?:string; created_by?:string; created_at?:string; updated_at?:string }
+        Relationships: [{ foreignKeyName:"school_events_created_by_fkey"; columns:["created_by"]; isOneToOne:false; referencedRelation:"profiles"; referencedColumns:["id"] }]
+      },
+      school_gallery: {
+        Row: { id:string; title:string; description:string; image_url:string; category:string; display_order:number; status:string; created_by:string; created_at:string; updated_at:string }
+        Insert: { id?:string; title:string; description?:string; image_url:string; category?:string; display_order?:number; status?:string; created_by:string; created_at?:string; updated_at?:string }
+        Update: { id?:string; title?:string; description?:string; image_url?:string; category?:string; display_order?:number; status?:string; created_by?:string; created_at?:string; updated_at?:string }
+        Relationships: [{ foreignKeyName:"school_gallery_created_by_fkey"; columns:["created_by"]; isOneToOne:false; referencedRelation:"profiles"; referencedColumns:["id"] }]
       }
     }
     Views: {
