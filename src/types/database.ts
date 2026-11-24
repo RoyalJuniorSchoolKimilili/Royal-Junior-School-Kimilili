@@ -844,6 +844,66 @@ export type Database = {
         ]
       }
     }
+      school_posts: {
+        Row: {
+          content: string
+          cover_image_url: string | null
+          created_at: string
+          created_by: string
+          excerpt: string
+          id: string
+          published_at: string | null
+          reviewed_by: string | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          cover_image_url?: string | null
+          created_at?: string
+          created_by: string
+          excerpt?: string
+          id?: string
+          published_at?: string | null
+          reviewed_by?: string | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string
+          excerpt?: string
+          id?: string
+          published_at?: string | null
+          reviewed_by?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_posts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_posts_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     Views: {
       [_ in never]: never
     }
