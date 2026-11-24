@@ -48,6 +48,7 @@ Relevant migrations:
 - `20261124182100_cbe_assessment_and_learner_progress_fields.sql`
 - `20261124182500_cbe_curriculum_design_components_and_areas.sql`
 - `20261124183000_add_mathematical_activities_learning_area.sql`
+- `20261124183500_add_cbe_assessment_approach.sql`
 
 Official reference: [KICD curriculum designs](https://kicd.ac.ke/cbc-materials/curriculum-designs/regular-curriculum-designs/) and [Basic Education Curriculum Framework](https://kicd.ac.ke/curriculum-reform/basic-education-curriculum-framework/).
 
