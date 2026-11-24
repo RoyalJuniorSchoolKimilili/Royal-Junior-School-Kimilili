@@ -64,7 +64,7 @@ export default function LearnerDirectory2026Page() {
         <a className="auth-back" href="/Royal-Junior-School-Kimilili/portal/dashboard/">← Back to school dashboard</a>
         <p className="eyebrow">ROYAL JUNIOR SCHOOL · KIMILILI</p>
         <h1>2026 Learner Directory</h1>
-        <p className="directory-note">Confidential school records. Accessible only to approved administrators, school leaders and teachers.</p>
+        <div className="directory-tools"><a className="directory-learner-link" href="/Royal-Junior-School-Kimilili/portal/classes/">View class-wise register ↗</a><a className="directory-learner-link" href="/Royal-Junior-School-Kimilili/portal/receipts/">School receipts ↗</a><a className="directory-learner-link" href="/Royal-Junior-School-Kimilili/portal/admission-letter/">Admission letter studio ↗</a></div><p className="directory-note">Confidential school records. Accessible only to approved administrators, school leaders and teachers.</p>
         <div className="directory-tools">
           <input aria-label="Search learners" placeholder="Search grade, learner, parent or phone…" value={query} onChange={e => setQuery(e.target.value)} />
           <select aria-label="Filter by grade" value={grade} onChange={e => setGrade(e.target.value)}>
