@@ -118,7 +118,9 @@ export default function ProtectedDashboardPage(){
   await loadRows(active);await loadLookups();
  };
  const saveGallery=async(e:FormEvent<HTMLFormElement>)=>{
-  e.preventDefault();setBusy(true);setError("");setSuccess("");
+  e.preventDefault();
+  if(!profile){setError("Your administrator session could not be verified. Please sign in again.");return;}
+  setBusy(true);setError("");setSuccess("");
   let imageUrl=(f.gallery_image??"").trim();let uploadedPath:string|null=null;
   if(galleryFile){
    const allowed=["image/jpeg","image/png","image/webp","image/gif"];
