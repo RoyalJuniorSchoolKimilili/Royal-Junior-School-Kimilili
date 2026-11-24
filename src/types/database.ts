@@ -46,6 +46,7 @@ export type Database = {
       }
       assessments: {
         Row: {
+          assessment_approach: string | null
           assessment_date: string | null
           assessment_method: string | null
           assessment_rubric: string | null
@@ -78,6 +79,7 @@ export type Database = {
           values_to_nurture: string | null
         }
         Insert: {
+          assessment_approach?: string | null
           assessment_date?: string | null
           assessment_method?: string | null
           assessment_rubric?: string | null
@@ -110,6 +112,7 @@ export type Database = {
           values_to_nurture?: string | null
         }
         Update: {
+          assessment_approach?: string | null
           assessment_date?: string | null
           assessment_method?: string | null
           assessment_rubric?: string | null
