@@ -210,7 +210,7 @@ export default function ProtectedDashboardPage(){
   const subjectIds=Array.from(new Set(termAssessments.map((a:any)=>a.subject_id).filter(Boolean)));
   const sx=subjectIds.length?await supabase.from("subjects").select("id,name").in("id",subjectIds):{data:[],error:null};
   if(sx.error){setReportBusy(false);setError(sx.error.message);return;}
-  const attendance=ar.data??[],marks=(mr.data??[]).filter((m:any)=>termIds.has(m.assessment_id)).map((m:any)=>({...m,assessment:termAssessments.find((a:any)=>a.id===m.assessment_id)}));
+  const attendance=(ar.data??[]).filter((x:any)=>{const day=String(x.attendance_date??"");return (!term.starts_on||day>=term.starts_on)&&(!term.ends_on||day<=term.ends_on)}),marks=(mr.data??[]).filter((m:any)=>termIds.has(m.assessment_id)).map((m:any)=>({...m,assessment:termAssessments.find((a:any)=>a.id===m.assessment_id)}));
   const scored=marks.filter((m:any)=>m.score!==null&&Number(m.maximum_score)>0);
   const average=scored.length?scored.reduce((n:number,m:any)=>n+Number(m.score)/Number(m.maximum_score)*100,0)/scored.length:null;
   const cls=classes.find(x=>x.id===learner.class_id);
