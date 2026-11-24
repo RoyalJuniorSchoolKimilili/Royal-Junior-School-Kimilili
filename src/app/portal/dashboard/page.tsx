@@ -120,6 +120,7 @@ export default function ProtectedDashboardPage(){
  const saveGallery=async(e:FormEvent<HTMLFormElement>)=>{
   e.preventDefault();
   if(!profile){setError("Your administrator session could not be verified. Please sign in again.");return;}
+  const activeProfile=profile;
   setBusy(true);setError("");setSuccess("");
   let imageUrl=(f.gallery_image??"").trim();let uploadedPath:string|null=null;
   if(galleryFile){
@@ -127,14 +128,14 @@ export default function ProtectedDashboardPage(){
    if(!allowed.includes(galleryFile.type)){setBusy(false);setError("Choose a JPG, PNG, WebP or GIF image.");return;}
    if(galleryFile.size>8*1024*1024){setBusy(false);setError("The image must be 8 MB or smaller.");return;}
    const ext=galleryFile.type==="image/jpeg"?"jpg":galleryFile.type.split("/")[1];
-   uploadedPath=profile.id+"/"+Date.now()+"-"+crypto.randomUUID()+"."+ext;
+   uploadedPath=activeProfile.id+"/"+Date.now()+"-"+crypto.randomUUID()+"."+ext;
    const upload=await supabase.storage.from("school-gallery").upload(uploadedPath,galleryFile,{cacheControl:"3600",contentType:galleryFile.type,upsert:false});
    if(upload.error){setBusy(false);setError("Photo upload failed: "+upload.error.message);return;}
    imageUrl=supabase.storage.from("school-gallery").getPublicUrl(uploadedPath).data.publicUrl;
   }
   if(!imageUrl){setBusy(false);setError("Choose a photo from your phone or enter an HTTPS image URL.");return;}
   if(!galleryFile&&!/^https:\/\//i.test(imageUrl)){setBusy(false);setError("The image URL must start with HTTPS.");return;}
-  const result=await supabase.from("school_gallery").insert({title:f.gallery_title,description:f.gallery_description||"",image_url:imageUrl,category:f.gallery_category||"School life",display_order:Number(f.gallery_order||0),status:f.gallery_status||"draft",created_by:profile.id});
+  const result=await supabase.from("school_gallery").insert({title:f.gallery_title,description:f.gallery_description||"",image_url:imageUrl,category:f.gallery_category||"School life",display_order:Number(f.gallery_order||0),status:f.gallery_status||"draft",created_by:activeProfile.id});
   if(result.error){
    if(uploadedPath) await supabase.storage.from("school-gallery").remove([uploadedPath]);
    setBusy(false);setError(result.error.message);return;
