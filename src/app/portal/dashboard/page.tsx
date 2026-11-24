@@ -7,9 +7,10 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Profile = { id: string; full_name: string; role: "admin" | "director" | "headteacher" | "bursar" | "teacher" | "parent" | "student"; approval_status: "pending" | "approved" | "rejected" };
 type Row = Record<string, any>;
-type ModuleKey = "overview" | "learners" | "attendance" | "assessments" | "results" | "classes" | "fees" | "approvals" | "notices" | "documents" | "news" | "website" | "my-records";
+type ModuleKey = "overview" | "staff" | "learners" | "attendance" | "assessments" | "results" | "classes" | "fees" | "approvals" | "notices" | "documents" | "news" | "website" | "my-records";
 const info: Record<ModuleKey,{title:string;description:string}> = {
  overview:{title:"Dashboard overview",description:"School management workspace."},
+ staff:{title:"Staff & teaching assignments",description:"View approved staff accounts and assign teachers to classes and learning areas."},
  learners:{title:"Learners & admissions",description:"Register learners and prepare admission letters."},
  attendance:{title:"Daily attendance",description:"Record attendance for learners in your assigned classes."},
  assessments:{title:"CBE assessments",description:"Create continuous assessment activities by class, learning area and term."},
@@ -24,7 +25,7 @@ const info: Record<ModuleKey,{title:string;description:string}> = {
  "my-records":{title:"My learner records",description:"View your own attendance, assessment results and approved fee payments."}
 };
 const roleModules:Record<Profile["role"],ModuleKey[]> = {
- admin:["overview","learners","attendance","assessments","results","classes","fees","approvals","notices","documents","news","website"],
+ admin:["overview","staff","learners","attendance","assessments","results","classes","fees","approvals","notices","documents","news","website"],
  director:["overview","learners","attendance","assessments","results","classes","fees","notices"],
  headteacher:["overview","learners","attendance","assessments","results","classes","notices","documents"],
  bursar:["overview","fees"],
@@ -122,6 +123,22 @@ export default function ProtectedDashboardPage(){
     ...(feesResult.data??[]).map(x=>({record:"Fee payment",date:x.paid_at,details:"KES "+x.amount_kes+" · "+x.payment_method+" · "+(x.receipt_number||"No receipt number"),status:x.status}))
    ].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime());
    setRows(combined);setNotice(learnerResult.data?learnerResult.data.full_name+" · Admission "+learnerResult.data.admission_number+(combined.length?"":" · No attendance, assessment or approved payment records are available yet."):learnerResult.error?.message??"Learner record is unavailable.");setLoading(false);return;
+  }
+  if(key==="staff"){
+   const [staffResult,assignmentResult,classResult,subjectResult]=await Promise.all([
+    supabase.from("profiles").select("id,full_name,phone,role,approval_status").in("role",["admin","director","headteacher","bursar","teacher"]).order("full_name"),
+    (supabase as any).from("teacher_classes").select("id,teacher_id,class_id,subject_id").order("created_at",{ascending:false}),
+    supabase.from("classes").select("id,name"),
+    supabase.from("subjects").select("id,name")
+   ]);
+   const classNames=Object.fromEntries((classResult.data??[]).map((x:any)=>[x.id,x.name]));
+   const subjectNames=Object.fromEntries((subjectResult.data??[]).map((x:any)=>[x.id,x.name]));
+   const staffNames=Object.fromEntries((staffResult.data??[]).map((x:any)=>[x.id,x.full_name]));
+   const accountRows=(staffResult.data??[]).map((x:any)=>({...x,record_type:"Staff account",class_name:"—",subject_name:"—"}));
+   const assignmentRows=(assignmentResult.data??[]).map((x:any)=>({id:x.id,record_type:"Teaching assignment",full_name:staffNames[x.teacher_id]??"Staff account",phone:"—",role:"teacher",approval_status:"—",class_name:classNames[x.class_id]??"Class unavailable",subject_name:x.subject_id?(subjectNames[x.subject_id]??"Learning area unavailable"):"All learning areas"}));
+   setRows([...accountRows,...assignmentRows]);
+   setNotice(staffResult.error?.message??assignmentResult.error?.message??classResult.error?.message??subjectResult.error?.message??(!accountRows.length?"No staff accounts yet. Create and approve staff accounts in the portal approvals section.":""));
+   setLoading(false);return;
   }
   const table:Record<string,string>={learners:"learners",attendance:"attendance",assessments:"assessments",results:"marks",classes:"classes",fees:"fee_payments",approvals:"profiles",notices:"notices",news:"school_posts",website:"school_events"};
   if(!table[key]){setRows([]);setLoading(false);return;}
@@ -247,6 +264,7 @@ export default function ProtectedDashboardPage(){
   {success&&<p className="portal-success" role="status">{success}</p>}{error&&<p className="portal-error" role="alert">{error}</p>}
   {active==="my-records"&&<section className="module-panel">{heading}<p className="module-empty">{notice}</p>{loading?<p>Loading your records…</p>:rows.length===0?<p>No records to display.</p>:<div className="table-scroll"><table className="school-data-table"><thead><tr><th>Record</th><th>Date</th><th>Details</th><th>Status</th></tr></thead><tbody>{rows.map((r,i)=><tr key={i}><td>{r.record}</td><td>{r.date?new Date(r.date).toLocaleDateString("en-KE"):"—"}</td><td>{r.details||"—"}</td><td>{r.status||"—"}</td></tr>)}</tbody></table></div>}</section>}
   {active==="overview"&&<div className="module-tiles">{modules.filter(k=>k!=="overview").map(k=><button key={k} className="module-tile" onClick={()=>setActive(k)}><strong>{info[k].title}</strong><span>{info[k].description}</span><em>Open section →</em></button>)}</div>}
+  {active==="staff"&&<section className="module-panel">{heading}<p className="module-empty">Staff accounts are managed through account approvals. This section shows staff roles and teaching assignments. Only approved teachers should be assigned to classes. Staff account details are visible to administrators only.</p><form className="portal-form" onSubmit={async e=>{e.preventDefault();if(!f.teacher_id||!f.assignment_class_id){setError("Select a teacher and class.");return;}const duplicate=await (supabase as any).from("teacher_classes").select("id").eq("teacher_id",f.teacher_id).eq("class_id",f.assignment_class_id).eq("subject_id",f.assignment_subject_id||null).maybeSingle();if(duplicate.error){setError(duplicate.error.message);return;}if(duplicate.data){setError("This teacher is already assigned to that class and learning area.");return;}await submit(e,"teacher_classes",{teacher_id:f.teacher_id,class_id:f.assignment_class_id,subject_id:f.assignment_subject_id||null});}}><h4>+ Assign teacher to a class / learning area</h4><Field label="Approved teacher"><SelectInput required value={f.teacher_id??""} onChange={(e:any)=>set("teacher_id",e.target.value)}>{profiles.filter(p=>p.role==="teacher"&&p.approval_status==="approved").map(p=><option key={p.id} value={p.id}>{p.full_name||"Teacher"} · {p.phone||"No phone"}</option>)}</SelectInput></Field><Field label="Class / grade"><SelectInput required value={f.assignment_class_id??""} onChange={(e:any)=>set("assignment_class_id",e.target.value)}>{classes.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</SelectInput></Field><Field label="Learning area (optional)"><SelectInput value={f.assignment_subject_id??""} onChange={(e:any)=>set("assignment_subject_id",e.target.value)}>{subjects.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</SelectInput></Field><button className="auth-button" disabled={busy}>Save teaching assignment</button></form><h4>Staff accounts and teaching assignments</h4>{tableView(["record_type","full_name","phone","role","approval_status","class_name","subject_name"])}</section>}
   {active==="learners"&&<section className="module-panel">{heading}{(profile.role==="admin"||profile.role==="headteacher")&&<form className="portal-form" onSubmit={e=>submit(e,"learners",{admission_number:f.admission_number,full_name:f.full_name,class_id:f.class_id||null,date_of_birth:f.dob||null,gender:f.gender||null,study_mode:f.study_mode,enrollment_status:"active",guardian_name:f.guardian_name||null,guardian_phone:f.guardian_phone||null})}><h4>+ Register learner</h4>{field("admission_number","Admission number")}{field("full_name","Learner full name")}{field("dob","Date of birth","date",false)}<Field label="Gender"><SelectInput value={f.gender??""} onChange={(e:any)=>set("gender",e.target.value)}><option value="female">Female</option><option value="male">Male</option><option value="other">Other</option></SelectInput></Field><Field label="Class">{classSelect}</Field><Field label="Study mode"><SelectInput value={f.study_mode} onChange={(e:any)=>set("study_mode",e.target.value)}><option value="day">Day</option><option value="boarding">Boarding</option></SelectInput></Field>{field("guardian_name","Parent / guardian name", "text",false)}{field("guardian_phone","Parent / guardian phone","tel",false)}<button className="auth-button" disabled={busy}>Save learner</button></form>}{tableView(["admission_number","full_name","class_id","study_mode","enrollment_status"])}</section>}
   {active==="attendance"&&<section className="module-panel">{heading}<form className="portal-form" onSubmit={e=>submit(e,"attendance",{learner_id:f.learner_id,class_id:f.class_id,attendance_date:f.date,status:f.status,note:f.note||null,recorded_by:profile.id})}><h4>+ Record daily attendance</h4><Field label="Class">{classSelect}</Field><Field label="Learner">{learnerSelect}</Field>{field("date","Attendance date","date")}<Field label="Status"><SelectInput value={f.status} onChange={(e:any)=>set("status",e.target.value)}><option value="present">Present</option><option value="absent">Absent</option><option value="late">Late</option><option value="excused">Excused</option></SelectInput></Field>{field("note","Note (optional)","text",false)}<button className="auth-button" disabled={busy}>Save attendance</button></form>{tableView(["attendance_date","learner_id","class_id","status","note"])}</section>}
   {active==="assessments"&&<section className="module-panel">{heading}
