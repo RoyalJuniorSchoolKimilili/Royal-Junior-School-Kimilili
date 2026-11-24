@@ -38,7 +38,7 @@ export default function PortalPage() {
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <a className="auth-back" href="/">← Back to school website</a>
+        <a className="auth-back" href={process.env.NODE_ENV === "production" ? "/Royal-Junior-School-Kimilili/" : "/"}>← Back to school website</a>
         <p className="eyebrow">ROYAL JUNIOR SCHOOL · KIMILILI</p>
         <h1>School portal</h1>
         {signedInEmail ? (
