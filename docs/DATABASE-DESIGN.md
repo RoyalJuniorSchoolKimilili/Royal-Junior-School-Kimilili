@@ -55,3 +55,15 @@ Official reference: [KICD curriculum designs](https://kicd.ac.ke/cbc-materials/c
 ## Scope
 
 The CBE assessment and learner-progress fields are now part of the live database schema and portal forms. Exact grade-specific strand/sub-strand/outcome/rubric text remains sourced from the current KICD curriculum designs rather than being guessed or hard-coded. The school's original report formats and approved fee items remain unchanged.
+
+### Grade-specific KICD learning-area labels
+
+The portal assessment form filters the learning-area dropdown by grade, using the KICD grade-band curriculum directories:
+- PP1–PP2: Language Activities, Mathematics Activities, Creative Arts, Environmental Activities and the separate CRE/HRE/IRE options.
+- Grades 1–3: English, Kiswahili, Mathematics, Environmental Activities, Creative Activities, separate CRE/HRE/IRE options and Indigenous Language.
+- Grades 4–6: English, Kiswahili, Mathematics, Agriculture & Nutrition, Social Studies, Creative Activities, Science & Technology, separate CRE/HRE/IRE options, Indigenous Language and optional foreign languages.
+- Grades 7–9: English, Kiswahili, Mathematics, Integrated Science, Agriculture, Pre-Technical Studies, Creative Arts and Sports, Social Studies, separate CRE/HRE/IRE options, Indigenous Language and optional foreign languages.
+
+Official KICD directories: [Pre-Primary / regular designs](https://kicd.ac.ke/cbc-materials/curriculum-designs/regular-curriculum-designs/), [Lower Primary](https://kicd.ac.ke/cbc-materials/lower-primary/), [Upper Primary](https://kicd.ac.ke/cbc-materials/curriculum-designs/upper-primary-designs/), [Grade 7 designs](https://kicd.ac.ke/cbc-materials/curriculum-designs/grade-seven-designs/) and [Junior School designs](https://kicd.ac.ke/cbc-materials/curriculum-designs/junior-school-designs/).
+
+The portal links teachers to the correct KICD directory for the selected grade. It does not copy or fabricate KICD strand/outcome text; teachers should use the current official design and record its exact wording in the assessment form.
