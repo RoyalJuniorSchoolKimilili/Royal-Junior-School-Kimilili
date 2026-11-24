@@ -47,33 +47,99 @@ export type Database = {
       assessments: {
         Row: {
           assessment_date: string | null
+          assessment_method: string | null
+          assessment_rubric: string | null
+          assessment_tool: string | null
+          assessment_type: string | null
           class_id: string
+          community_service_learning: string | null
+          core_competencies: string | null
           created_at: string
           created_by: string
+          curriculum_design_reference: string | null
+          essence_statement: string | null
+          evidence_of_learning: string | null
+          general_learning_outcomes: string | null
+          grade_level: string | null
           id: string
+          inclusion_adaptations: string | null
+          key_inquiry_question: string | null
+          learning_experiences: string | null
+          learning_resources: string | null
+          national_goal: string | null
+          pertinent_contemporary_issues: string | null
+          specific_learning_outcomes: string | null
+          strand: string | null
+          sub_strand: string | null
           subject_id: string
+          teacher_reflection: string | null
           term_id: string
           title: string
+          values_to_nurture: string | null
         }
         Insert: {
           assessment_date?: string | null
+          assessment_method?: string | null
+          assessment_rubric?: string | null
+          assessment_tool?: string | null
+          assessment_type?: string | null
           class_id: string
+          community_service_learning?: string | null
+          core_competencies?: string | null
           created_at?: string
           created_by: string
+          curriculum_design_reference?: string | null
+          essence_statement?: string | null
+          evidence_of_learning?: string | null
+          general_learning_outcomes?: string | null
+          grade_level?: string | null
           id?: string
+          inclusion_adaptations?: string | null
+          key_inquiry_question?: string | null
+          learning_experiences?: string | null
+          learning_resources?: string | null
+          national_goal?: string | null
+          pertinent_contemporary_issues?: string | null
+          specific_learning_outcomes?: string | null
+          strand?: string | null
+          sub_strand?: string | null
           subject_id: string
+          teacher_reflection?: string | null
           term_id: string
           title: string
+          values_to_nurture?: string | null
         }
         Update: {
           assessment_date?: string | null
+          assessment_method?: string | null
+          assessment_rubric?: string | null
+          assessment_tool?: string | null
+          assessment_type?: string | null
           class_id?: string
+          community_service_learning?: string | null
+          core_competencies?: string | null
           created_at?: string
           created_by?: string
+          curriculum_design_reference?: string | null
+          essence_statement?: string | null
+          evidence_of_learning?: string | null
+          general_learning_outcomes?: string | null
+          grade_level?: string | null
           id?: string
+          inclusion_adaptations?: string | null
+          key_inquiry_question?: string | null
+          learning_experiences?: string | null
+          learning_resources?: string | null
+          national_goal?: string | null
+          pertinent_contemporary_issues?: string | null
+          specific_learning_outcomes?: string | null
+          strand?: string | null
+          sub_strand?: string | null
           subject_id?: string
+          teacher_reflection?: string | null
           term_id?: string
           title?: string
+          values_to_nurture?: string | null
         }
         Relationships: [
           {
@@ -441,36 +507,57 @@ export type Database = {
       marks: {
         Row: {
           assessment_id: string
+          competency_progress: string | null
           created_at: string
+          evidence_notes: string | null
           feedback: string | null
           grade: string | null
           id: string
           learner_id: string
+          learner_reflection: string | null
+          learner_strengths: string | null
           maximum_score: number | null
+          next_steps: string | null
+          parent_support: string | null
           recorded_by: string
           score: number | null
+          support_needs: string | null
         }
         Insert: {
           assessment_id: string
+          competency_progress?: string | null
           created_at?: string
+          evidence_notes?: string | null
           feedback?: string | null
           grade?: string | null
           id?: string
           learner_id: string
+          learner_reflection?: string | null
+          learner_strengths?: string | null
           maximum_score?: number | null
+          next_steps?: string | null
+          parent_support?: string | null
           recorded_by: string
           score?: number | null
+          support_needs?: string | null
         }
         Update: {
           assessment_id?: string
+          competency_progress?: string | null
           created_at?: string
+          evidence_notes?: string | null
           feedback?: string | null
           grade?: string | null
           id?: string
           learner_id?: string
+          learner_reflection?: string | null
+          learner_strengths?: string | null
           maximum_score?: number | null
+          next_steps?: string | null
+          parent_support?: string | null
           recorded_by?: string
           score?: number | null
+          support_needs?: string | null
         }
         Relationships: [
           {
