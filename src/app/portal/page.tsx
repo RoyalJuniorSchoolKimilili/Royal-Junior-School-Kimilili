@@ -1,7 +1,14 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
+type Profile = {
+  full_name: string;
+  role: "admin" | "teacher" | "parent";
+  approval_status: "pending" | "approved" | "rejected";
+};
 
 export default function PortalPage() {
   const [email, setEmail] = useState("");
@@ -9,6 +16,55 @@ export default function PortalPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [signedInEmail, setSignedInEmail] = useState("");
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  async function loadProfile(session: Session) {
+    const supabase = createSupabaseBrowserClient();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("full_name, role, approval_status")
+      .eq("id", session.user.id)
+      .single();
+
+    if (error) {
+      setMessage("Your login is active, but the school profile could not be loaded. Please contact the school administrator.");
+      return;
+    }
+
+    setSignedInEmail(session.user.email ?? "");
+    setProfile(data as Profile);
+    if (data.approval_status === "pending") {
+      setMessage("Your account is waiting for school approval. Learner records remain locked until approval.");
+    } else if (data.approval_status === "rejected") {
+      setMessage("This account has not been approved for the school portal. Please contact the school office.");
+    } else {
+      setMessage("Your account is approved. Portal access is protected by your school role and the database access policies.");
+    }
+  }
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    let active = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session) void loadProfile(data.session);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      if (!session) {
+        setSignedInEmail("");
+        setProfile(null);
+      } else {
+        void loadProfile(session);
+      }
+    });
+
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -18,8 +74,7 @@ export default function PortalPage() {
       const supabase = createSupabaseBrowserClient();
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      setSignedInEmail(data.user.email ?? email);
-      setMessage("Sign-in succeeded. School records remain unavailable until your account is approved and the database access policies are installed.");
+      await loadProfile(data.session);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to sign in. Please try again.");
     } finally {
@@ -29,8 +84,13 @@ export default function PortalPage() {
 
   async function signOut() {
     const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
     setSignedInEmail("");
+    setProfile(null);
     setPassword("");
     setMessage("You have signed out.");
   }
@@ -43,8 +103,9 @@ export default function PortalPage() {
         <h1>School portal</h1>
         {signedInEmail ? (
           <>
-            <p className="auth-status">Signed in as <strong>{signedInEmail}</strong>.</p>
-            <p className="auth-note">Your dashboard will appear once the school account approval and row-level access setup is completed. No learner records are exposed on this page.</p>
+            <p className="auth-status">Signed in as <strong>{profile?.full_name || signedInEmail}</strong>.</p>
+            {profile && <p className="auth-status">Role: <strong>{profile.role}</strong> · Account: <strong>{profile.approval_status}</strong></p>}
+            <p className="auth-message" role="status">{message}</p>
             <button className="auth-button" onClick={signOut}>Sign out</button>
           </>
         ) : (
@@ -56,8 +117,8 @@ export default function PortalPage() {
             <button className="auth-button" type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
           </form>
         )}
-        {message && <p className="auth-message" role="status">{message}</p>}
-        <p className="auth-note">Accounts are issued or approved by the school. Self-registration is not enabled yet.</p>
+        {!signedInEmail && message && <p className="auth-message" role="status">{message}</p>}
+        <p className="auth-note">Accounts are issued by the school. New accounts remain pending until approved by an administrator.</p>
       </section>
     </main>
   );
