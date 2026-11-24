@@ -30,3 +30,12 @@ The production build exports to `out/` and uses the repository base path `/Royal
 The static Next.js foundation and GitHub Pages workflow are committed. The homepage is currently a starter placeholder, not a recreation of the original school website. The original school `index.html` must be supplied again so its exact branding, crest, school information, fees and admissions content can be retained.
 
 The Supabase project is active and has no application tables yet. The school schema and RLS policies have not been applied. Do not use real learner data until those policies have been implemented and tested.
+
+
+## Database design review
+
+See [docs/DATABASE-DESIGN.md](docs/DATABASE-DESIGN.md) for the proposed learner, guardian, teacher, class, attendance, assessment, fee, payment, notice and audit schema and the role-based RLS model. This is a design proposal only; no school tables or policies have been applied.
+
+## Portal sign-in
+
+The initial email/password sign-in page is available at `/portal/`. Configure the public Supabase URL and publishable key as GitHub Actions repository variables before deploying. Do not add a service-role key. Sign-in does not grant access to learner records: the approval/profile schema and RLS policies must be deployed first.
