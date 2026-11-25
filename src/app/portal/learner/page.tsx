@@ -7,7 +7,7 @@ type AnyRow = Record<string, any>;
 type Learner = {
   id: string; admission_number: string; full_name: string; class_id: string | null;
   date_of_birth: string | null; gender: string | null; study_mode: string;
-  enrollment_status: string; guardian_name: string | null; guardian_phone: string | null;
+  enrollment_status: string; guardian_name: string | null; guardian_phone: string | null; confidential_notes: string | null;
 };
 const base = "/Royal-Junior-School-Kimilili/portal/";
 const dateLabel = (value?: string | null) => value ? new Date(value).toLocaleDateString("en-KE") : "—";
@@ -19,7 +19,7 @@ export default function LearnerProfilePage() {
   const [attendance,setAttendance]=useState<AnyRow[]>([]),[marks,setMarks]=useState<AnyRow[]>([]);
   const [fees,setFees]=useState<AnyRow[]>([]),[documents,setDocuments]=useState<AnyRow[]>([]);
   const [directory,setDirectory]=useState<AnyRow|null>(null),[choices,setChoices]=useState<AnyRow[]>([]),[choiceClasses,setChoiceClasses]=useState<AnyRow[]>([]);
-  const [selected,setSelected]=useState(""),[selectedGrade,setSelectedGrade]=useState(""),[saving,setSaving]=useState(false),[message,setMessage]=useState("");
+  const [selected,setSelected]=useState(""),[selectedGrade,setSelectedGrade]=useState(""),[saving,setSaving]=useState(false),[message,setMessage]=useState("");\n  const [editGender,setEditGender]=useState(""),[editNotes,setEditNotes]=useState("");
   const canSeeFees=(r:string)=>["admin","director","headteacher","parent"].includes(r);
   useEffect(()=>{let alive=true;const supabase=createSupabaseBrowserClient();
     const load=async()=>{
@@ -45,10 +45,10 @@ export default function LearnerProfilePage() {
         if(!learnerId){setLoading(false);return;}
       }
       if(!learnerId){setError("No learner was selected.");setLoading(false);return;}
-      const {data:record,error:recordError}=await supabase.from("learners").select("id,admission_number,full_name,class_id,date_of_birth,gender,study_mode,enrollment_status,guardian_name,guardian_phone").eq("id",learnerId).maybeSingle();
+      const {data:record,error:recordError}=await supabase.from("learners").select("id,admission_number,full_name,class_id,date_of_birth,gender,study_mode,enrollment_status,guardian_name,guardian_phone,confidential_notes").eq("id",learnerId).maybeSingle();
       if(!alive)return;
       if(recordError||!record){setError(recordError?.message??"This learner record is unavailable or you do not have permission to view it.");setLoading(false);return;}
-      setLearner(record as Learner);
+      setLearner(record as Learner);setEditGender(record.gender??"");setEditNotes(record.confidential_notes??"");
       const [classResult,attendanceResult,marksResult]=await Promise.all([
         record.class_id ? supabase.from("classes").select("name").eq("id",record.class_id).maybeSingle() : Promise.resolve({data:null,error:null}),
         supabase.from("attendance").select("id,attendance_date,status,note").eq("learner_id",learnerId).order("attendance_date",{ascending:false}).limit(100),
@@ -69,6 +69,7 @@ export default function LearnerProfilePage() {
     };
     void load();return()=>{alive=false};
   },[]);
+  const saveLearnerDetails=async()=>{if(!learner||role!=="admin")return;setSaving(true);setMessage("");const supabase=createSupabaseBrowserClient();const {error:saveError}=await supabase.from("learners").update({gender:editGender||null,confidential_notes:editNotes.trim()||null}).eq("id",learner.id);setSaving(false);if(saveError){setMessage("Could not save learner details: "+saveError.message);return;}setLearner({...learner,gender:editGender||null,confidential_notes:editNotes.trim()||null});setMessage("Learner details saved successfully.");};
   const linkDirectory=async()=>{
     if(!directory||!selected)return;
     setSaving(true);setMessage("");const supabase=createSupabaseBrowserClient();
@@ -85,6 +86,7 @@ export default function LearnerProfilePage() {
   return <main className="auth-page"><section className="auth-card profile-card">
     <a href={base+"dashboard/"}>← Back to school dashboard</a><p className="eyebrow">ROYAL JUNIOR SCHOOL · KIMILILI</p><h1>{learner.full_name}</h1><p className="profile-subtitle">Admission No. {learner.admission_number} · {className}</p>
     <div className="profile-grid"><div><small>Admission status</small><strong>{learner.enrollment_status}</strong></div><div><small>Study mode</small><strong>{learner.study_mode}</strong></div><div><small>Date of birth</small><strong>{dateLabel(learner.date_of_birth)}</strong></div><div><small>Gender</small><strong>{learner.gender||"—"}</strong></div><div><small>Parent / guardian</small><strong>{learner.guardian_name||"Not recorded"}</strong></div><div><small>Guardian phone</small><strong>{learner.guardian_phone||"Not recorded"}</strong></div></div>
+    {role==="admin"&&<section className="profile-section"><h2>Edit learner details</h2><p>Administrators can update the learner's gender and add further verified information. Avoid entering unnecessary sensitive information.</p><label>Gender<select value={editGender} onChange={e=>setEditGender(e.target.value)}><option value="">Not recorded</option><option value="female">Female</option><option value="male">Male</option><option value="other">Other / not specified</option></select></label><label>Additional learner details<textarea rows={6} value={editNotes} onChange={e=>setEditNotes(e.target.value)} placeholder="For example: UPI/NEMIS number, previous school, emergency contact, relevant medical alert, learning support arrangements, or other verified notes." /></label><button className="auth-button" disabled={saving} onClick={saveLearnerDetails}>{saving?"Saving…":"Save learner details"}</button>{message&&<p role="status">{message}</p>}</section>}
     <section className="profile-section"><h2>School documents</h2><p><a href="/Royal-Junior-School-Kimilili/portal/receipts/">Open secure school receipts ↗</a></p></section><section className="profile-section"><h2>Attendance history</h2>{attendance.length?<div className="table-scroll"><table className="school-data-table"><thead><tr><th>Date</th><th>Status</th><th>Note</th></tr></thead><tbody>{attendance.map(x=><tr key={x.id}><td>{dateLabel(x.attendance_date)}</td><td>{x.status}</td><td>{x.note||"—"}</td></tr>)}</tbody></table></div>:<p>No attendance records available.</p>}</section>
     <section className="profile-section"><h2>CBE assessments and results</h2>{marks.length?<div className="table-scroll"><table className="school-data-table"><thead><tr><th>Date</th><th>Learning area / assessment</th><th>Strand / sub-strand</th><th>Score / grade</th><th>Feedback and competencies</th></tr></thead><tbody>{marks.map(x=>{const a=x.assessments??{};return <tr key={x.id}><td>{dateLabel(a.assessment_date||x.created_at)}</td><td>{[a.subjects?.name,a.title].filter(Boolean).join(" · ")||"Assessment"}</td><td>{[a.strand,a.sub_strand].filter(Boolean).join(" / ")||"—"}</td><td>{x.score==null?(x.grade||"—"):(x.score+"/"+(x.maximum_score??"—")+" · "+(x.grade||""))}</td><td>{[x.feedback,x.competency_progress,x.learner_strengths,x.support_needs,x.next_steps].filter(Boolean).join(" · ")||"—"}</td></tr>})}</tbody></table></div>:<p>No assessment results recorded yet.</p>}</section>
     {canSeeFees(role)&&<section className="profile-section"><h2>Fee payment history</h2>{fees.length?<div className="table-scroll"><table className="school-data-table"><thead><tr><th>Paid date</th><th>Amount</th><th>Method</th><th>Receipt</th><th>Status</th></tr></thead><tbody>{fees.map(x=><tr key={x.id}><td>{dateLabel(x.paid_at)}</td><td>{money(x.amount_kes)}</td><td>{x.payment_method}</td><td>{x.receipt_number||"—"}</td><td>{x.status}</td></tr>)}</tbody></table></div>:<p>No fee payments recorded.</p>}</section>}
@@ -92,5 +94,5 @@ export default function LearnerProfilePage() {
   </section><style jsx>{styles}</style></main>;
 }
 const styles=`
-.profile-card{width:min(1100px,100%);max-width:1100px}.profile-card h1{margin:.5rem 0}.profile-subtitle{color:#64748b;margin:.4rem 0 1.25rem}.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.8rem;margin:1.2rem 0}.profile-grid>div{padding:1rem;border:1px solid #e2e8f0;border-radius:12px;display:flex;flex-direction:column;gap:.35rem;min-width:0}.profile-grid small{color:#64748b}.profile-grid strong{overflow-wrap:anywhere}.profile-section{margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e2e8f0}.profile-section h2{font-size:1.1rem;margin:0 0 .8rem}.profile-section select{display:block;width:100%;padding:.8rem;margin:.8rem 0;border:1px solid #cbd5e1;border-radius:10px}.profile-section ul{padding-left:1.2rem}.profile-section li{margin:.4rem 0}.profile-card>.auth-button{margin-top:.5rem}@media(max-width:640px){.profile-card{padding:1rem}.profile-section .table-scroll{max-width:100%;overflow-x:auto}}
+.profile-card{width:min(1100px,100%);max-width:1100px}.profile-card h1{margin:.5rem 0}.profile-subtitle{color:#64748b;margin:.4rem 0 1.25rem}.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.8rem;margin:1.2rem 0}.profile-grid>div{padding:1rem;border:1px solid #e2e8f0;border-radius:12px;display:flex;flex-direction:column;gap:.35rem;min-width:0}.profile-grid small{color:#64748b}.profile-grid strong{overflow-wrap:anywhere}.profile-section{margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e2e8f0}.profile-section h2{font-size:1.1rem;margin:0 0 .8rem}.profile-section select,.profile-section textarea{display:block;width:100%;padding:.8rem;margin:.8rem 0;border:1px solid #cbd5e1;border-radius:10px;font:inherit}.profile-section textarea{resize:vertical;min-height:120px}.profile-section ul{padding-left:1.2rem}.profile-section li{margin:.4rem 0}.profile-card>.auth-button{margin-top:.5rem}@media(max-width:640px){.profile-card{padding:1rem}.profile-section .table-scroll{max-width:100%;overflow-x:auto}}
 `;
