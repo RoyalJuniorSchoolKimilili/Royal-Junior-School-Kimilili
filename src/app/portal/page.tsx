@@ -66,7 +66,7 @@ export default function PortalPage() {
     try {
       const supabase = createSupabaseBrowserClient();
       const loginIdentifier = username.trim().toLowerCase();
-      const isEmail = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(loginIdentifier);
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginIdentifier);
       if (!isEmail && !/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(loginIdentifier)) {
         throw new Error("Enter your school username or registered email address.");
       }
