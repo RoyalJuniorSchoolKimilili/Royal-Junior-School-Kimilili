@@ -159,19 +159,21 @@ export default function ProtectedDashboardPage(){
    setRows([...accountRows,...linkRows]);setNotice(parentsResult.error?.message??linksResult.error?.message??learnersResult.error?.message??classesResult.error?.message??(!accountRows.length?"No parent accounts yet. Approve parent accounts in Staff & parent approvals first.":""));setLoading(false);return;
   }
   if(key==="staff"){
-   const [staffResult,assignmentResult,classResult,subjectResult]=await Promise.all([
+   const [staffResult,assignmentResult,classResult,subjectResult,directoryResult]=await Promise.all([
     supabase.from("profiles").select("id,full_name,phone,role,approval_status").in("role",["admin","director","headteacher","bursar","teacher"]).order("full_name"),
     (supabase as any).from("teacher_classes").select("id,teacher_id,class_id,subject_id").order("created_at",{ascending:false}),
     supabase.from("classes").select("id,name"),
-    supabase.from("subjects").select("id,name")
+    supabase.from("subjects").select("id,name"),
+    (supabase as any).from("staff_directory").select("id,full_name,phone,department,position_title,login_status").order("department").order("full_name")
    ]);
    const classNames=Object.fromEntries((classResult.data??[]).map((x:any)=>[x.id,x.name]));
    const subjectNames=Object.fromEntries((subjectResult.data??[]).map((x:any)=>[x.id,x.name]));
    const staffNames=Object.fromEntries((staffResult.data??[]).map((x:any)=>[x.id,x.full_name]));
    const accountRows=(staffResult.data??[]).map((x:any)=>({...x,record_type:"Staff account",class_name:"—",subject_name:"—"}));
+   const directoryRows=(directoryResult.data??[]).map((x:any)=>({...x,record_type:"Staff directory",role:x.position_title,approval_status:x.login_status,class_name:x.department,subject_name:"—"}));
    const assignmentRows=(assignmentResult.data??[]).map((x:any)=>({id:x.id,record_type:"Teaching assignment",full_name:staffNames[x.teacher_id]??"Staff account",phone:"—",role:"teacher",approval_status:"—",class_name:classNames[x.class_id]??"Class unavailable",subject_name:x.subject_id?(subjectNames[x.subject_id]??"Learning area unavailable"):"All learning areas"}));
-   setRows([...accountRows,...assignmentRows]);
-   setNotice(staffResult.error?.message??assignmentResult.error?.message??classResult.error?.message??subjectResult.error?.message??(!accountRows.length?"No staff accounts yet. Create and approve staff accounts in the portal approvals section.":""));
+   setRows([...accountRows,...directoryRows,...assignmentRows]);
+   setNotice(staffResult.error?.message??assignmentResult.error?.message??classResult.error?.message??subjectResult.error?.message??directoryResult.error?.message??(!accountRows.length&&!directoryRows.length?"No staff accounts yet. Create and approve staff accounts in the portal approvals section.":""));
    setLoading(false);return;
   }
   if(key==="fees"){
