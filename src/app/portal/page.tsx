@@ -13,7 +13,7 @@ type Profile = {
 
 export default function PortalPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -65,7 +65,10 @@ export default function PortalPage() {
     setMessage("");
     try {
       const supabase = createSupabaseBrowserClient();
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const normalizedUsername = username.trim().toLowerCase();
+      if (!/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(normalizedUsername)) throw new Error("Enter the username issued by the school.");
+      const internalEmail = `${normalizedUsername}@login.royaljuniorschoolkimilili.co.ke`;
+      const { data, error } = await supabase.auth.signInWithPassword({ email: internalEmail, password });
       if (error) throw error;
       if (!data.session) throw new Error("No active session was returned. Please try again.");
       const currentProfile = await loadProfile(data.session);
@@ -106,8 +109,8 @@ export default function PortalPage() {
           </>
         ) : (
           <form onSubmit={signIn}>
-            <label htmlFor="email">Email address</label>
-            <input id="email" type="email" autoComplete="username" required value={email} onChange={e => setEmail(e.target.value)} />
+            <label htmlFor="username">Username</label>
+            <input id="username" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} required value={username} onChange={e => setUsername(e.target.value)} placeholder="e.g. lucy.mwasame" />
             <label htmlFor="password">Password</label>
             <input id="password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} />
             <button className="auth-button" type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
