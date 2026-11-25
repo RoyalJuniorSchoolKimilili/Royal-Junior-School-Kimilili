@@ -166,3 +166,5 @@ footer { padding: 28px; text-align: center; color: var(--muted); font-size: 13px
 /* Grade-based grouping in learner and admission registers */
 .grade-group-row th{background:#eef2f8;color:var(--navy);font-weight:900;text-align:left;padding:11px 12px;border-top:2px solid var(--gold)}
 .admission-grade-group{margin:16px 0 22px}.admission-grade-group>h4{padding:10px 12px;margin:0 0 8px;background:#eef2f8;border-left:4px solid var(--gold);color:var(--navy)}
+
+.learner-edit-action{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border-radius:7px;background:#12335b;color:#fff!important;font-weight:800;text-decoration:none!important;white-space:nowrap}.learner-edit-action:hover{background:#1d4d7d}
