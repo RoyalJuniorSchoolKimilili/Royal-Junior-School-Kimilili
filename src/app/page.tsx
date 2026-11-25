@@ -8,6 +8,7 @@ const loginCards = [
   { title: "Admin Login", description: "School management and full administration access", icon: "🛡️" },
   { title: "Staff Login", description: "Office, accounts and authorised staff services", icon: "💼" },
   { title: "Teachers Login", description: "Classes, attendance and CBE assessments", icon: "📚" },
+  { title: "Parents Login", description: "View your own child's school, fee and academic records", icon: "👨‍👩‍👧" },
 ];
 
 export default function HomePage() {
@@ -24,7 +25,7 @@ export default function HomePage() {
         <div style={{ maxWidth: 1120, margin: "0 auto" }}>
           <p style={{ margin: "0 0 6px", color: "#f5d58a", fontWeight: 800, letterSpacing: 2, textAlign: "center", fontSize: 13 }}>ROYAL JUNIOR SCHOOL KIMILILI</p>
           <h1 id="portal-heading" style={{ margin: "0 0 8px", color: "#fff", textAlign: "center", fontSize: "clamp(25px,4vw,36px)", fontWeight: 900 }}>School Portal – Choose Your Login</h1>
-          <p style={{ margin: "0 0 20px", color: "#e8eef7", textAlign: "center", fontSize: 15 }}>Secure access for school administrators, staff and teachers</p>
+          <p style={{ margin: "0 0 20px", color: "#e8eef7", textAlign: "center", fontSize: 15 }}>Secure access for administrators, staff, teachers and parents</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,220px),1fr))", gap: 14 }}>
             {loginCards.map((card) => (
               <a key={card.title} href={portalUrl} style={{ display: "flex", alignItems: "center", gap: 14, minHeight: 100, padding: "18px 20px", borderRadius: 16, background: "#fff", color: "#14294a", border: "2px solid #e8ac2a", boxShadow: "0 5px 16px rgba(0,0,0,.18)", textDecoration: "none" }}>
@@ -37,6 +38,7 @@ export default function HomePage() {
               </a>
             ))}
           </div>
+          <p style={{ margin: "15px 0 0", color: "#f7e9c6", textAlign: "center", fontSize: 12 }}>Parent accounts must be approved by the school and securely linked by the administrator to the correct learner(s).</p>
         </div>
       </section>
 
