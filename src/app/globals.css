@@ -71,10 +71,11 @@ footer { padding: 28px; text-align: center; color: var(--muted); font-size: 13px
 
 
 /* School management data-entry forms and official print documents */
-.dashboard-brand{display:flex;align-items:center;gap:16px;margin-bottom:22px}
-.dashboard-brand img{width:76px;height:76px;object-fit:contain;border-radius:50%;border:2px solid var(--gold);background:#fff}
-.dashboard-brand h1{margin:0;color:var(--navy);font-size:clamp(25px,5vw,36px)}
-.dashboard-brand .eyebrow{margin-bottom:5px}
+.dashboard-brand{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 auto 22px;text-align:center}
+.dashboard-brand img{display:block;width:112px;height:112px;max-width:100%;object-fit:contain;margin:0 auto;border:0;border-radius:0;background:transparent}
+.dashboard-brand>div{display:grid;justify-items:center;gap:5px;width:100%;text-align:center}
+.dashboard-brand h1{margin:0;color:var(--navy);font-size:clamp(25px,5vw,36px);text-align:center}
+.dashboard-brand .eyebrow{margin:0 0 2px;text-align:center}
 .portal-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px;margin:22px 0;padding:18px;border:1px solid #e0e6ed;border-radius:10px;background:#fbfcfe}
 .portal-form h4{grid-column:1/-1;margin:0 0 4px;color:var(--navy);font-size:18px}
 .portal-field{display:grid;gap:6px;color:var(--navy);font-size:13px;font-weight:700}
@@ -105,7 +106,7 @@ footer { padding: 28px; text-align: center; color: var(--muted); font-size: 13px
 .receipt-number{text-align:right;padding:10px;background:#f6f2e8}
 .receipt-amount{display:flex;justify-content:space-between;gap:20px;align-items:center;margin:24px 0;padding:18px;border:2px solid var(--gold);background:#fbf8ef}
 .receipt-amount strong{font-size:24px;color:var(--navy)}
-@media(max-width:650px){.portal-form{grid-template-columns:1fr;padding:14px}.approval-row{align-items:stretch;flex-direction:column}.approval-actions{flex-wrap:wrap}.approval-actions select{flex:1;min-width:100px}.official-document{padding:20px 16px}.print-school-head img{width:66px;height:66px}.print-school-head h1{font-size:17px}.dashboard-brand img{width:60px;height:60px}}
+@media(max-width:650px){.dashboard-brand img{width:96px;height:96px}.portal-form{grid-template-columns:1fr;padding:14px}.approval-row{align-items:stretch;flex-direction:column}.approval-actions{flex-wrap:wrap}.approval-actions select{flex:1;min-width:100px}.official-document{padding:20px 16px}.print-school-head img{width:66px;height:66px}.print-school-head h1{font-size:17px}.dashboard-brand img{width:60px;height:60px}}
 @media print{
  @page{size:A4;margin:16mm}
  body{background:#fff!important}
