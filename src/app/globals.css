@@ -92,8 +92,8 @@ footer { padding: 28px; text-align: center; color: var(--muted); font-size: 13px
 .approval-actions button{padding:10px 12px;border:0;border-radius:6px;background:var(--navy);color:white;font-weight:700}
 .document-preview{margin:22px 0}
 .official-document{max-width:760px;margin:18px auto;padding:38px;background:white;border:1px solid #dce2e9;color:#1c2938;box-shadow:0 5px 22px rgba(16,43,78,.08);font-family:Arial,Helvetica,sans-serif;line-height:1.7}
-.print-school-head{display:flex;justify-content:center;align-items:center;gap:18px;padding-bottom:18px;border-bottom:3px double var(--gold);text-align:center}
-.print-school-head img{width:88px;height:88px;object-fit:contain}
+.print-school-head{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;padding-bottom:18px;border-bottom:3px double var(--gold);text-align:center}
+.print-school-head img{display:block;width:112px;height:112px;object-fit:contain;margin:0 auto 4px;flex:0 0 auto}
 .print-school-head h1{margin:0;color:var(--navy);font-size:24px;letter-spacing:.07em}
 .print-school-head p{margin:0;color:#987a2f;font-weight:800;letter-spacing:.25em}
 .print-school-head small{color:#68778a}
