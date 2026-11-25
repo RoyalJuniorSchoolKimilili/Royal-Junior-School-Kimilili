@@ -28,7 +28,7 @@ export default function HomePage() {
             <h2 id="admissions-2027-heading" style={{ margin: "0 0 10px", color: "#102b4e", fontSize: "clamp(34px,6vw,58px)", lineHeight: 1.02, fontWeight: 950 }}>2027 OPEN<br />ADMISSIONS</h2>
             <p style={{ margin: "0 0 14px", color: "#263b56", fontSize: "clamp(16px,2vw,20px)", fontWeight: 800 }}>Enrolment enquiries are welcome</p>
             <p style={{ margin: "0 0 20px", color: "#43536a", maxWidth: 620, lineHeight: 1.6 }}>Join our learning community. Enquire about admission from Playgroup to Grade 9.</p>
-            <a href={portalUrl} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 46, padding: "0 24px", borderRadius: 999, background: "#102b4e", color: "#fff", fontWeight: 900, textDecoration: "none", boxShadow: "0 5px 14px rgba(16,43,78,.2)" }}>ENQUIRE / APPLY NOW →</a>
+            <a href={portalUrl} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 46, padding: "0 24px", borderRadius: 999, background: "#102b4e", color: "#fff", fontWeight: 900, textDecoration: "none", boxShadow: "0 5px 14px rgba(16,43,78,.2)" }}>ADMISSIONS ENQUIRY →</a>
           </div>
           <div aria-label="2027 admissions information" style={{ minHeight: 190, display: "grid", alignContent: "center", justifyItems: "center", padding: 22, borderRadius: 22, background: "#102b4e", color: "#fff", border: "4px solid #c9a34a", boxShadow: "0 12px 28px rgba(16,43,78,.16)", textAlign: "center" }}>
             <span style={{ color: "#f5d58a", fontSize: 13, fontWeight: 900, letterSpacing: 2 }}>NOW RECEIVING ENQUIRIES</span>
