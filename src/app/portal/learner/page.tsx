@@ -19,7 +19,8 @@ export default function LearnerProfilePage() {
   const [attendance,setAttendance]=useState<AnyRow[]>([]),[marks,setMarks]=useState<AnyRow[]>([]);
   const [fees,setFees]=useState<AnyRow[]>([]),[documents,setDocuments]=useState<AnyRow[]>([]);
   const [directory,setDirectory]=useState<AnyRow|null>(null),[choices,setChoices]=useState<AnyRow[]>([]),[choiceClasses,setChoiceClasses]=useState<AnyRow[]>([]);
-  const [selected,setSelected]=useState(""),[selectedGrade,setSelectedGrade]=useState(""),[saving,setSaving]=useState(false),[message,setMessage]=useState("");\n  const [editGender,setEditGender]=useState(""),[editNotes,setEditNotes]=useState(""),[editAdmission,setEditAdmission]=useState(""),[editName,setEditName]=useState(""),[editDob,setEditDob]=useState(""),[editGuardian,setEditGuardian]=useState(""),[editPhone,setEditPhone]=useState(""),[editStudyMode,setEditStudyMode]=useState("day"),[editStatus,setEditStatus]=useState("active");
+  const [selected,setSelected]=useState(""),[selectedGrade,setSelectedGrade]=useState(""),[saving,setSaving]=useState(false),[message,setMessage]=useState("");
+  const [editGender,setEditGender]=useState(""),[editNotes,setEditNotes]=useState(""),[editAdmission,setEditAdmission]=useState(""),[editName,setEditName]=useState(""),[editDob,setEditDob]=useState(""),[editGuardian,setEditGuardian]=useState(""),[editPhone,setEditPhone]=useState(""),[editStudyMode,setEditStudyMode]=useState("day"),[editStatus,setEditStatus]=useState("active");
   const canSeeFees=(r:string)=>["admin","director","headteacher","parent"].includes(r);
   useEffect(()=>{let alive=true;const supabase=createSupabaseBrowserClient();
     const load=async()=>{
