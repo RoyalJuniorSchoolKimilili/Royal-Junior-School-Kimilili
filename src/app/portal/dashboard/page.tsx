@@ -76,6 +76,7 @@ export default function ProtectedDashboardPage(){
  const router=useRouter(), supabase=useMemo(()=>createSupabaseBrowserClient(),[]);
  const [profile,setProfile]=useState<Profile|null>(null),[status,setStatus]=useState("loading"),[message,setMessage]=useState("Checking your school account…");
  const [active,setActive]=useState<ModuleKey>("overview"),[rows,setRows]=useState<Row[]>([]),[loading,setLoading]=useState(false),[notice,setNotice]=useState("");
+ useEffect(()=>{const section=new URLSearchParams(window.location.search).get("section");if(section==="staff")setActive("staff")},[]);
  const [assessmentOptions,setAssessmentOptions]=useState<Row[]>([]),[feeStructures,setFeeStructures]=useState<Row[]>([]),[feeInvoices,setFeeInvoices]=useState<Row[]>([]),[admissionNumbers,setAdmissionNumbers]=useState<Record<string,string>>({}),[parentLinkSelections,setParentLinkSelections]=useState<Record<string,string>>({}),[learners,setLearners]=useState<Row[]>([]),[classes,setClasses]=useState<Row[]>([]),[subjects,setSubjects]=useState<Row[]>([]),[subjectGradeLevels,setSubjectGradeLevels]=useState<Row[]>([]),[terms,setTerms]=useState<Row[]>([]),[profiles,setProfiles]=useState<Row[]>([]),[studentLinks,setStudentLinks]=useState<Row[]>([]),[linkSelections,setLinkSelections]=useState<Record<string,string>>({}),[linkGradeSelections,setLinkGradeSelections]=useState<Record<string,string>>({});
  const [busy,setBusy]=useState(false),[success,setSuccess]=useState(""),[error,setError]=useState("");
  const [f,setF]=useState<Record<string,string>>({date:today(),study_mode:"day",status:"present",method:"mpesa",audience:"all",role:"teacher",approval_status:"approved",year:String(new Date().getFullYear()),term_number:"1",grade_level:"Grade 1"});
@@ -324,7 +325,7 @@ export default function ProtectedDashboardPage(){
   <p className="auth-status">Welcome, <strong>{profile.full_name||"School user"}</strong> · Role: <strong>{profile.role}</strong></p>
   <p className="auth-message">{message}</p>
   {profile.role==="student"&&<p className="module-empty">Student access is reserved until the school links this account to an individual learner record. No other learner records are shown.</p>}
-  <div className="dashboard-heading"><h2>School portal modules</h2><p>Choose a section. Add forms are available to authorised staff.</p></div>
+  <div className="dashboard-heading"><h2>School portal modules</h2><p>Choose a section. Add forms are available to authorised staff.</p>{profile.role==="admin"&&<p><a className="learner-edit-action" href="/Royal-Junior-School-Kimilili/portal/dashboard/?section=staff">Open Staff Accounts directly →</a></p>}</div>
   <nav className="module-nav" aria-label="School portal sections">{modules.map(k=><button key={k} type="button" className={active===k?"module-tab active":"module-tab"} onClick={()=>{setActive(k);setSuccess("");setError("")}}>{info[k].title}</button>)}</nav>
   {["admin","teacher","director","headteacher"].includes(profile.role)&&<p className="module-empty"><a href="/Royal-Junior-School-Kimilili/portal/learners-2026/">Open the protected 2026 learner directory →</a></p>}
   {success&&<p className="portal-success" role="status">{success}</p>}{error&&<p className="portal-error" role="alert">{error}</p>}
