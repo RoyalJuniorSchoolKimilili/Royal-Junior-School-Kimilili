@@ -145,9 +145,9 @@ footer { padding: 28px; text-align: center; color: var(--muted); font-size: 13px
 @media(max-width:650px){.cbe-multi-section{padding:12px;margin:4px 0 10px}.cbe-multi-section .cbe-check-grid{grid-template-columns:1fr}.cbe-multi-section .cbe-check{min-height:50px;padding:12px}.cbe-multi-heading{font-size:14px}}
 
 /* Consistent centered school identity on every public and portal route */
-.global-school-header{min-height:88px;display:flex;align-items:center;justify-content:center;gap:13px;padding:9px 16px;background:#fff;border-bottom:3px solid var(--gold);text-align:center}
+.global-school-header{min-height:126px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:12px 16px;background:#fff;border-bottom:3px solid var(--gold);text-align:center}
 .global-school-header img{width:64px;height:64px;object-fit:contain}
-.global-school-header div{display:grid;gap:3px;color:var(--navy);letter-spacing:.12em}
+.global-school-header div{display:grid;justify-items:center;gap:3px;color:var(--navy);letter-spacing:.12em}
 .global-school-header strong{font-size:16px;font-weight:900}
 .global-school-header span{font-size:12px;color:#987a2f;font-weight:800;letter-spacing:.28em}
 .cbe-report-tools{margin:22px 0;padding:18px;border:1px solid #dce4ed;border-radius:10px;background:#f8fafc}
@@ -160,5 +160,5 @@ footer { padding: 28px; text-align: center; color: var(--muted); font-size: 13px
 .report-table{font-size:11px}
 .report-table th,.report-table td{padding:7px;vertical-align:top;white-space:normal;overflow-wrap:anywhere}
 .report-signatures{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-top:38px}
-@media(max-width:650px){.global-school-header{min-height:78px}.global-school-header img{width:56px;height:56px}.global-school-header strong{font-size:14px}.report-identity{grid-template-columns:1fr}.report-signatures{grid-template-columns:1fr}}
+@media(max-width:650px){.global-school-header{min-height:112px;padding:9px 12px}.global-school-header img{width:52px;height:52px}.global-school-header strong{font-size:14px}.report-identity{grid-template-columns:1fr}.report-signatures{grid-template-columns:1fr}}
 @media print{.global-school-header{display:none!important}.cbe-report-document .report-table{font-size:9px}.cbe-report-document .report-table th,.cbe-report-document .report-table td{padding:5px}}
